@@ -1,0 +1,36 @@
+# Neovim generated files
+*.swp
+*.swo
+*.swn
+*.bak
+*~
+.netrwhist
+
+# Compiled Lua
+*.luac
+
+# Plugin / package manager artifacts
+lazy.nvim/
+mason/
+parser/
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+.directory
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Local configuration / secrets
+*.local.lua
+local.lua
+.env
+.env.*
+!.env.example
