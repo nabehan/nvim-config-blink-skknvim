@@ -76,10 +76,10 @@ skk.setup({
   -- sources.providers.skk と対）の挙動。値は skk.nvim 側の既定値と同じ
   -- （skkeleton 側に対応する個別設定は元々無かったため新規）。
   blink = {
-    max_items = 30,
+    max_items = 50,
     skip_skkserv = false,
     skkserv_candidates = true,
-    skkserv_candidate_limit = 30,
+    skkserv_candidate_limit = 50,
   },
 })
 

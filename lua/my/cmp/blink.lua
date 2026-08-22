@@ -396,9 +396,12 @@ blink.setup({
       -- ["<S-Tab>"] = { "show", "select_prev", "fallback" },
       ["<C-n>"] = { "show", "select_next", "fallback" },
       ["<C-p>"] = { "show", "select_prev", "fallback" },
-      -- accept は候補をコマンドラインに挿入するだけで実行はしない。
-      -- accept_and_enter は挿入と同時に確定（実行）まで行う。
-      ["<CR>"] = { "accept_and_enter", "fallback" },
+      -- 【変更】以前は accept_and_enter（挿入と同時に実行）だったが、
+      -- コマンドライン/検索での補完確定のたびにそのままコマンドが実行・
+      -- 検索が実行されてしまい、引数の追加や文字列の延長ができない
+      -- という報告のため accept（挿入のみ、実行しない）に変更。
+      -- 実行するにはもう一度 <CR> を押す。
+      ["<CR>"] = { "accept", "fallback" },
       ["<C-e>"] = { "cancel", "fallback" },
       -- ["<C-y>"] = { "select_and_accept" },
       ["<TAB>"] = { "select_and_accept" },
