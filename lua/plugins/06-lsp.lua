@@ -113,11 +113,10 @@ return {
       -- require("cmp") 参照（cmp.lsp.CompletionItemKind 等）をシムして解決する
       -- lazy=true にしない: require("cmp") (blink.compat が同梱する偽 cmp
       -- モジュール) を起動直後から確実に使えるようにするため
-      -- （skkeleton_cmp_shim.lua がこれに visible()/confirm() を生やす）
       { "saghen/blink.compat", version = "2.*", opts = { impersonate_nvim_cmp = true } },
       -- 互換レイヤー経由で使い続ける nvim-cmp ソース群
-      -- (skkeleton は lua/my/cmp/skkeleton_source.lua のネイティブソースに
-      -- 置き換えたため、ここには含めない)
+      -- (skk は skk.nvim 本体同梱のネイティブソース skk.blink_source を
+      -- 使うため、ここには含めない)
       { "hrsh7th/cmp-calc" },
       { "hrsh7th/cmp-emoji" },
       { "f3fora/cmp-spell" },

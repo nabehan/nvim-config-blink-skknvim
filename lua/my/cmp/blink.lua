@@ -22,19 +22,12 @@ require("my.cmp.LuaSnipCustom")
 vim.g.my_blink_enabled = true
 vim.g.my_skk_cmp_suppressed = false -- ★追加: ▼(変換候補選択)中はtrueにしてblink.cmpを止める
 -- ===================================================================
--- skkeleton が有効かどうかを判定するヘルパー
--- ===================================================================
-local function is_skkeleton_active()
-  return vim.fn.exists("*skkeleton#is_enabled") == 1 and vim.fn["skkeleton#is_enabled"]()
-end
-
--- ===================================================================
 -- source ごとの表示名（メニューにブラケット付きで表示するためのラベル）
 -- ※ providers.*.name は blink.compat がソース実体を解決するための
 -- 「nvim-cmp 側の登録名」なので、表示専用の変換はここで別管理する
 -- ===================================================================
 local SOURCE_LABELS = {
-  skkeleton = "[SKK]",
+  skk = "[SKK]",
   snippets = "[SNIP]",
   lsp = "[LSP]",
   path = "[PATH]",
@@ -66,7 +59,7 @@ end
 -- filetype ごとの source 一覧（common + 用途別追加）
 -- ===================================================================
 local common_providers = {
-  "skkeleton",
+  "skk",
   "snippets",
   "lsp",
   "path",
@@ -315,22 +308,26 @@ blink.setup({
       },
 
       -- ---------------------------------------------------------
-      -- skkeleton: ネイティブソース（blink.compat は使わない）
-      -- blink.compat 経由では accept 時にテキストがバッファへ反映されない
-      -- 問題が解決できなかったため、lua/my/cmp/skkeleton_source.lua に
-      -- 直接移植したネイティブソースを使う。ネイティブなので name は
-      -- 完全に表示用（compat のような実体解決の制約はない）。
+      -- skk.nvim: 本体同梱のネイティブソース（skk.blink_source）。
+      -- setup() は lua/my/utils/skk.lua の require("skk").setup({blink=...})
+      -- 内部で自動的に行われる（ここでは sources.providers への登録のみ）。
+      -- enabled() は skk.nvim README の使用例通り、▽（midashi）/abbrev
+      -- 状態のときだけ有効にする。
       -- ---------------------------------------------------------
-      skkeleton = {
-        name = SOURCE_LABELS.skkeleton,
-        module = "my.cmp.skkeleton_source",
+      skk = {
+        name = SOURCE_LABELS.skk,
+        module = "skk.blink_source",
         min_keyword_length = 0,
         score_offset = 100, -- SKK 変換中は他ソースより優先して表示
-        async = false, -- denops#request は同期呼び出しなので待って問題ない
+        async = false, -- skkeleton版と同じ理由（同期処理のため待って問題ない。要実機確認）
+        enabled = function()
+          local phase = require("skk.henkan.state").get_phase()
+          return phase == "midashi" or phase == "abbrev"
+        end,
       },
 
       -- ---------------------------------------------------------
-      -- blink.compat 経由の nvim-cmp ソース（skkeleton 以外）
+      -- blink.compat 経由の nvim-cmp ソース（skk 以外）
       -- name は必ず nvim-cmp 側の登録名と一致させること（表示名は上の
       -- SOURCE_LABELS と draw.components.source_name.text で処理する）
       -- ---------------------------------------------------------
@@ -427,72 +424,45 @@ blink.setup({
 })
 
 -- ===================================================================
--- skkeleton の ▽/▼ 表示に合わせて、blink.cmp の補完メニューを
--- 手動で show()/hide() する
+-- skk.nvim の ▽/▼ 表示に合わせて、blink.cmp の補完メニューを
+-- show()/hide() する（skk.nvim README「使い方」のサンプルどおり）。
+--
+-- 【重要】show() には必ず providers = { "skk" } を明示すること。
+-- skk.nvim の ▽/▼ は extmark（仮想テキスト）表示で実バッファは
+-- 変化しないため、blink.cmp 自身の「実テキストの変更を検知して
+-- 自動的に再要求する」通常の仕組みが働かない。省略すると、▽に
+-- 入った直後の1回目でメニューが開いた後、読みが伸びても2回目以降の
+-- show() が無視され、候補リストが更新されないまま止まる
+-- （skk.nvim README「実装上の既知のクセ」参照）。
 -- ===================================================================
--- vim.api.nvim_create_autocmd("User", {
---   pattern = { "skkeleton-handled", "skkeleton-mode-changed" },
---   callback = function()
---     if not is_skkeleton_active() then
---       return
---     end
---
---     local line = vim.api.nvim_get_current_line()
---     local col = vim.api.nvim_win_get_cursor(0)[2]
---     local before_cursor = string.sub(line, 1, col)
---
---     if string.find(before_cursor, "▽") then
---       vim.schedule(function()
---         blink.show()
---       end)
---     else
---       blink.hide()
---     end
---   end,
--- })
-
--- 【重要】確定後に skkeleton#cancel() を呼ぶ処理は行わない。
--- skkeleton_source.lua 側の execute() が確定処理そのものを担っており、
--- ここで cancel() を呼ぶと直前に挿入された文字列ごと巻き戻ってしまい、
--- 「<CR> で確定しても本文に反映されない」という不具合の原因になる。
-
 vim.api.nvim_create_autocmd("User", {
-  pattern = { "skkeleton-handled", "skkeleton-mode-changed" },
-  callback = function()
-    if not is_skkeleton_active() then
-      vim.g.my_skk_cmp_suppressed = false
-      return
-    end
+  pattern = "SkkHenkanChanged",
+  callback = function(ev)
+    local phase = ev.data and ev.data.phase
 
-    local line = vim.api.nvim_get_current_line()
-    local col = vim.api.nvim_win_get_cursor(0)[2]
-    local before_cursor = string.sub(line, 1, col)
-
-    if string.find(before_cursor, "▼") then
-      -- 変換候補選択(▼)中: blink.cmp を完全に止める。
-      -- enabled() 側で弾かれるので、blink.cmp 自身の自動表示も抑制される。
+    if phase == "select" then
+      -- ▼変換候補選択中: skk.nvim 自身の候補選択ウィンドウと表示が
+      -- 競合するため blink.cmp を完全に止める（skkeleton版と同じ理由）。
       vim.g.my_skk_cmp_suppressed = true
       blink.hide()
-    elseif string.find(before_cursor, "▽") then
-      -- 見出し語入力(▽)中: 従来どおり
+    elseif phase == "midashi" or phase == "abbrev" then
+      -- ▽見出し語入力中・abbrev中: ライブ補完を表示
       vim.g.my_skk_cmp_suppressed = false
       vim.schedule(function()
-        blink.show()
+        blink.show({ providers = { "skk" } })
       end)
     else
-      -- direct モード。直前まで▼だった場合はここが確定/キャンセル直後のイベント。
-      -- この場で再表示はせず抑制だけ解除する。実際の再開は次に打鍵した
-      -- タイミングで blink.cmp 自身の自動表示ロジックに任せる。
+      -- idle（direct モード）
       vim.g.my_skk_cmp_suppressed = false
       blink.hide()
     end
   end,
 })
 
--- ===================================================================
--- skkeleton に blink.cmp を「nvim-cmp」として認識させるシム。
--- これがないと skkeleton の eggLikeNewline による <CR> 確定処理が
--- 一度も発火せず、どのソースの候補を選んでも <CR> で確定できない
--- （詳細は lua/my/cmp/skkeleton_cmp_shim.lua のコメントを参照）。
--- ===================================================================
-require("my.cmp.skkeleton_cmp_shim").setup()
+-- 【skkeleton版との違い】blink.cmp を nvim-cmp として認識させるシム
+-- （skkeleton_cmp_shim.lua）は skk.nvim には不要。skk.nvim は
+-- capture.lua の passthrough_guard（blink.cmp の is_visible() を見て
+-- 自身の自動確定ロジックを止める仕組み）で外部UIとのキー競合に対処して
+-- おり、これは lua/my/utils/skk.lua の setup({ blink = {...} }) 内部で
+-- 自動的に登録される。nvim-cmp を偽装する必要がない
+-- （skk.nvim README「外部UI（blink.cmp）とのキー競合と passthrough_guard」参照）。

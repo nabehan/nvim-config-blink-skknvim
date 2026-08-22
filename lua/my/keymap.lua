@@ -29,7 +29,6 @@ vim.keymap.set("c", "<CR>", "<Plug>(kensaku-search-replace)<CR>", { noremap = fa
 vim.keymap.set("n", "<leader>tf", ":ToggleTerm direction=float<CR>")
 vim.keymap.set("n", "<leader>tv", ":ToggleTerm direction=vertical<CR>")
 vim.keymap.set("n", "<leader>th", ":ToggleTerm direction=horizontal<CR>")
--- vim.keymap.set("t", "<C-j>", "<Plug>(skkeleton-toggle)", { silent = true, remap = true })
 -- ウィンドウの全画面化
 vim.keymap.set("n", "<Leader>z", function()
   vim.cmd("wincmd _")

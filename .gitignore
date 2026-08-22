@@ -34,3 +34,5 @@ local.lua
 .env
 .env.*
 !.env.example
+
+./search_test.md

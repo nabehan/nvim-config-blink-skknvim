@@ -81,31 +81,29 @@ local function noice_has(key)
   end
 end
 
-local function skkeleton_mode()
-  -- Denops や skkeleton が読み込まれていない場合は安全にスキップ
-  if vim.fn.exists("*skkeleton#mode") == 0 then
+local function skk_mode()
+  -- skk.nvim が読み込まれていない場合は安全にスキップ
+  local ok, skk = pcall(require, "skk")
+  if not ok then
     return ""
   end
 
-  -- skkeleton が有効化されているかチェック
-  -- (is_enabled が未定義または 0 の場合は非表示)
-  if vim.fn.exists("*skkeleton#is_enabled") == 1 and vim.fn["skkeleton#is_enabled"]() == 0 then
+  -- 半角英数（SKK実質OFF）のときは非表示（skkeleton版の
+  -- is_enabled()==0 相当。skk.nvim の is_enabled() は
+  -- capture.get_mode() ~= "ascii" と等価）。
+  if not skk.is_enabled() then
     return ""
   end
 
-  local mode = vim.fn["skkeleton#mode"]()
+  local mode = require("skk.capture").get_mode()
 
-  -- <l> 等で直接入力モードになると mode は "" (空文字) を返すため "eiji" に置き換える
-  if mode == "" then
-    mode = "eiji"
-  end
-
+  -- skk.nvim は skkeleton と異なり半角カタカナモードを持たない
+  -- （4モードのみ: ascii/hira/kata/zenei）。
   local mode_map = {
+    ascii = "latn",
     hira = "ひら",
     kata = "カタ",
-    hankata = "半カ",
-    zenkaku = "ＬＡ",
-    eiji = "latin",
+    zenei = "ＬＡ",
   }
 
   return mode_map[mode] or ""
@@ -120,7 +118,7 @@ require("lualine").setup({
     lualine_a = { "mode" },
     lualine_b = {
       {
-        skkeleton_mode,
+        skk_mode,
         color = { gui = "bold" }, -- お好みの色に調整可能
         -- color = { fg = "#7aa2f7", gui = "bold" }, -- お好みの色に調整可能
       },

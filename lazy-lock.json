@@ -60,8 +60,7 @@
   "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
   "rainbow-delimiters.nvim": { "branch": "master", "commit": "012f1480cd9a5fc99fce7678e0a536421a53fc46" },
   "scratch.nvim": { "branch": "main", "commit": "6230634669d29bf05ab4e85b3c7df8fd8402dcb4" },
-  "skkeleton": { "branch": "main", "commit": "cb6e529dada798929deefd879e32e418dab1c6ac" },
-  "skkeleton_indicator.nvim": { "branch": "v2", "commit": "b3e5379db47ed86a2f0f6fd9ae2c30a0e8119c23" },
+  "skk.nvim": { "branch": "main", "commit": "b93fe7ec1649918925765b4de187d14c47044e27" },
   "sonokai": { "branch": "master", "commit": "b023c5280b16fe2366f5e779d8d2756b3e5ee9c3" },
   "sqlite.lua": { "branch": "master", "commit": "50092d60feb242602d7578398c6eb53b4a8ffe7b" },
   "tabular": { "branch": "master", "commit": "12437cd1b53488e24936ec4b091c9324cafee311" },
@@ -84,7 +83,7 @@
   "vim-markdown": { "branch": "master", "commit": "1bc9d0cd8e1cc3e901b0a49c2b50a843f1c89397" },
   "vim-markdown-toc": { "branch": "master", "commit": "66026b323379c9a712c6169cd43153216acef090" },
   "vim-smartword": { "branch": "master", "commit": "608d4883bb1eff4131f44857a21119220e55886d" },
-  "vimtex": { "branch": "master", "commit": "2f279775e5b73743973bf2b013791f8f1673d5ac" },
+  "vimtex": { "branch": "master", "commit": "c1b96604d9a387cde5a98bec8f6687ae3078b571" },
   "vscode.nvim": { "branch": "main", "commit": "aa1102a7e15195c9cca22730b09224a7f7745ba8" },
   "yanky.nvim": { "branch": "main", "commit": "dd6689fdda85f66cab7d9b1a1664625f3be0920d" }
 }

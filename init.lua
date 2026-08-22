@@ -45,7 +45,7 @@ vim.cmd("let g:fuzzy_motion_matchers = ['kensaku', 'fzf']")
 -- ===================================================================
 -- 各種外部設定ファイルの読み込み
 -- ===================================================================
-require("my.utils.skkeleton")
+require("my.utils.skk")
 -- 補完 (blink.cmp) は lua/plugins/06-lsp.lua の config() から
 -- require("my.cmp.blink") として読み込まれる
 require("my.telescope.config")

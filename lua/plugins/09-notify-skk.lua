@@ -21,10 +21,11 @@ return {
     end,
   },
 
-  { "vim-skk/skkeleton" },
-  { "delphinus/skkeleton_indicator.nvim" },
-
-  -- 補完ソースとしての skkeleton は blink.compat 経由の cmp-skkeleton ではなく
-  -- lua/my/cmp/skkeleton_source.lua のネイティブ blink.cmp ソースを使う
-  -- （06-lsp.lua の blink.cmp 設定を参照。追加のプラグインは不要）。
+  -- SKK日本語入力（denops非依存、Lua実装）。
+  -- setup() は lua/my/utils/skk.lua で行う（init.lua から blink.cmp の
+  -- setup() 完了後に require される。詳細はそちらのコメント参照）。
+  -- blink.cmp ネイティブソース（skk.blink_source）も本体に同梱のため、
+  -- skkeleton_indicator.nvim・skkeleton_cmp_shim 相当の追加プラグイン/
+  -- ブリッジコードは不要。
+  { "nabehan/skk.nvim" },
 }
