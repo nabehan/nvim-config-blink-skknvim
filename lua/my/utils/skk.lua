@@ -23,6 +23,11 @@ skk.setup({
   -- char_key_to_zenei = "L",         -- ひらがな/カタカナ -> 全角英数
   -- abbrev_key = "/",                -- abbrevモード開始
 
+  -- <C-j> の度に noice.nvim の通知ウィンドウが開いて煩わしいため無効化。
+  -- カーソル位置のモードインジケーター表示（ひら/カタ/latn/ＬＡ）は
+  -- このオプションと独立しており、そのまま出続ける。
+  notify_mode_change = false,
+
   sticky_shift_enabled = true,
   sticky_shift_key = ";",
 
@@ -36,16 +41,16 @@ skk.setup({
 
     -- 配色 省略時はカラースキームのNormalFloat/FloatBorderのまま
     -- fg = "#d8dee9",
-    -- bg = "#2e3440", -- 非選択の候補行
-    border_fg = "#88c0d0", -- 枠線
-    alt_bg = "#1b4252", -- 1行おきの縞模様（可読性向上、省略時は縞なし）
+    -- bg = "#223249", -- 非選択の候補行
+    -- border_fg = "#1b4252", -- #88c0d0 枠線
+    alt_bg = "#2e3440", --  1行おきの縞模様（可読性向上、省略時は縞なし）
   },
 
   -- ▽/▼のインライン表示の配色（省略時はComment/IncSearch）
   -- candidate_fg/bgは候補ウィンドウの選択行のハイライトにも連動する。
   midashi_fg = "#ff9e64",
-  candidate_fg = "#2e3440",
-  candidate_bg = "#ebcb8b",
+  candidate_fg = "#d8dee9", -- #2e3440
+  candidate_bg = "#1b4252", -- #ebcb8b
 
   -- インラインのモードインジケーター（ひら/カタ/latn/ＬＡ）の配色 省略時は NormalFloat
   -- indicator_fg = "#2e3440",

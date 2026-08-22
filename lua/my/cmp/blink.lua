@@ -21,6 +21,26 @@ require("my.cmp.LuaSnipCustom")
 -- ===================================================================
 vim.g.my_blink_enabled = true
 vim.g.my_skk_cmp_suppressed = false -- ★追加: ▼(変換候補選択)中はtrueにしてblink.cmpを止める
+
+-- ===================================================================
+-- 【デバッグ用スイッチ】▼(変換候補選択)状態で blink.cmp 全体を
+-- 無効化する（my_skk_cmp_suppressed を enabled() 判定に反映させる）か。
+--
+-- skkeleton版からの移植時、「▼状態ではskk.nvim自身の候補選択ウィンドウと
+-- blink.cmpのメニュー表示が競合する」という理由で全体停止する設計に
+-- していたが、nvim-skk-sandbox環境ではそもそも表示の重複が発生しない
+-- ことが確認された。また、▼状態のままEnterキーで確定すると
+-- （my_skk_cmp_suppressedがfalseに戻る前にblink.cmp側の<CR>キーマップの
+-- accept/force acceptが評価され、blink.cmp自体が無効化されているために
+-- 両方失敗し、fallback＝素の<CR>による意図しない改行挿入まで落ちてしまう）
+-- 不具合の原因になっている疑いがある。
+--
+-- 実機固有の問題かどうかを切り分けるためのデバッグ用スイッチ。
+-- デフォルト false（無効化しない＝常にblink.cmpは有効のまま。
+-- 表示の抑制は SkkHenkanChanged ハンドラの hide()/show() のみで行う）。
+-- true にすると従来通り「▼状態でblink.cmp全体を止める」動作に戻る。
+vim.g.my_skk_suppress_blink_on_select = false
+
 -- ===================================================================
 -- source ごとの表示名（メニューにブラケット付きで表示するためのラベル）
 -- ※ providers.*.name は blink.compat がソース実体を解決するための
@@ -117,7 +137,8 @@ blink.setup({
   -- -------------------------------------------------------------
   enabled = function()
     -- return vim.g.my_blink_enabled and vim.bo.buftype ~= "prompt"
-    return vim.g.my_blink_enabled and vim.bo.buftype ~= "prompt" and not vim.g.my_skk_cmp_suppressed
+    local skk_suppressed = vim.g.my_skk_suppress_blink_on_select and vim.g.my_skk_cmp_suppressed
+    return vim.g.my_blink_enabled and vim.bo.buftype ~= "prompt" and not skk_suppressed
   end,
 
   -- -------------------------------------------------------------
