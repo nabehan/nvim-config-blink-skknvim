@@ -76,6 +76,7 @@ return {
         help = "vimdoc",
         tex = "latex",
         plaintex = "latex",
+        lisp = "commonlisp",
       }
 
       -- 旧 highlight.enable / indent.enable 相当：
