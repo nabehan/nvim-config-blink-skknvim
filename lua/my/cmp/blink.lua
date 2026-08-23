@@ -167,10 +167,38 @@ blink.setup({
   -- キーマッピング（旧 nvim-cmp のマッピングを踏襲）
   -- -------------------------------------------------------------
   keymap = {
-    preset = "none",
+    -- preset = "none",
+    -- preset = "default",
 
-    ["<C-n>"] = { "select_next", "fallback" },
-    ["<C-p>"] = { "select_prev", "fallback" },
+    -- ["<C-n>"] = { "select_next", "fallback" },
+    ["<C-n>"] = {
+      function()
+        if require("skk.henkan.state").get_phase() == "select" then
+          vim.schedule(function()
+            require("skk.henkan.state").focus_next()
+          end)
+          return true
+        end
+        return false
+      end,
+      "select_next",
+      "fallback_to_mappings",
+    },
+
+    -- ["<C-p>"] = { "select_prev", "fallback" },
+    ["<C-p>"] = {
+      function()
+        if require("skk.henkan.state").get_phase() == "select" then
+          vim.schedule(function()
+            require("skk.henkan.state").focus_prev()
+          end)
+          return true
+        end
+        return false
+      end,
+      "select_prev",
+      "fallback_to_mappings",
+    },
 
     ["<C-f>"] = { "scroll_documentation_down", "fallback" },
     ["<C-b>"] = { "scroll_documentation_up", "fallback" },
@@ -199,6 +227,7 @@ blink.setup({
       end,
       "fallback",
     },
+
     ["<S-Tab>"] = {
       function()
         if luasnip.jumpable(-1) then
@@ -227,6 +256,7 @@ blink.setup({
       end,
       "fallback",
     },
+
     ["<C-h>"] = {
       function()
         if luasnip.choice_active() then
@@ -241,13 +271,14 @@ blink.setup({
     },
 
     -- 確定は blink 本来の accept に一本化する（自前挿入はしない）
-    ["<CR>"] = {
-      "accept",
-      function(cmp)
-        return cmp.accept({ force = true })
-      end,
-      "fallback",
-    },
+    ["<CR>"] = { "accept", "fallback" },
+    -- ["<CR>"] = {
+    --   "accept",
+    --   function(cmp)
+    --     return cmp.accept({ force = true })
+    --   end,
+    --   "fallback",
+    -- },
   },
 
   -- -------------------------------------------------------------
@@ -415,8 +446,35 @@ blink.setup({
       -- 必要なキーはすべて明示的に定義する
       -- ["<Tab>"] = { "show", "select_next", "fallback" },
       -- ["<S-Tab>"] = { "show", "select_prev", "fallback" },
-      ["<C-n>"] = { "show", "select_next", "fallback" },
-      ["<C-p>"] = { "show", "select_prev", "fallback" },
+      -- ["<C-n>"] = { "show", "select_next", "fallback" },
+      ["<C-n>"] = {
+        function()
+          if require("skk.henkan.state").get_phase() == "select" then
+            vim.schedule(function()
+              require("skk.henkan.state").focus_next()
+            end)
+            return true
+          end
+          return false
+        end,
+        "select_next",
+        "fallback_to_mappings",
+      },
+
+      -- ["<C-p>"] = { "show", "select_prev", "fallback" },
+      ["<C-p>"] = {
+        function()
+          if require("skk.henkan.state").get_phase() == "select" then
+            vim.schedule(function()
+              require("skk.henkan.state").focus_prev()
+            end)
+            return true
+          end
+          return false
+        end,
+        "select_prev",
+        "fallback_to_mappings",
+      },
       -- 【変更】以前は accept_and_enter（挿入と同時に実行）だったが、
       -- コマンドライン/検索での補完確定のたびにそのままコマンドが実行・
       -- 検索が実行されてしまい、引数の追加や文字列の延長ができない
