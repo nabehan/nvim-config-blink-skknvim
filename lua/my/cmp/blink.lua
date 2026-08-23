@@ -42,6 +42,31 @@ vim.g.my_skk_cmp_suppressed = false -- ★追加: ▼(変換候補選択)中はt
 vim.g.my_skk_suppress_blink_on_select = false
 
 -- ===================================================================
+-- 【<CR>によるegg_like_newline改行バグ対策】用フラグ
+--
+-- skk.nvim は <CR> に対して独自のキーマップを一切持たず、vim.on_key()
+-- （観測専用、キーマップ解決そのものは止められない）で確定処理を行う
+-- だけなので、blink.cmp 側の <CR> キーマップの "fallback" アクション
+-- （skk.nvim由来のキーマップが見つからないため、素の <CR> ＝改行挿入を
+-- そのままフィードする。blink.cmp本体 lua/blink/cmp/keymap/fallback.lua
+-- で確認済み）が必ず実行され、egg_like_newline=true でも改行が
+-- 入ってしまう不具合があった。
+--
+-- SkkHenkanChanged が phase="idle" になった直後（confirm/キャンセル
+-- 問わず）に一度だけこのフラグを立て、Insertモードの <CR> キーマップの
+-- fallback 直前でこれを見て、真なら fallback を実行せずに終える
+-- （＝キー入力を消費したことにして、余計な改行を入れない）。
+-- nvim_exec_autocmds は同期呼び出しのため、<CR> を打った瞬間に
+-- vim.on_key() 経由で henkan_state.confirm() → このイベント発火が、
+-- Neovimのキーマップ解決（この <CR> キーマップ自体の評価）より先に
+-- 完了している前提。
+--
+-- 【未対応】コマンドラインモードの <CR> は今のところ問題が報告されて
+-- いないため、このガードは Insert モードの <CR> キーマップにのみ入れて
+-- いる（cmdline側の <CR> は変更していない）。
+vim.g.my_skk_cr_fallback_guard = false
+
+-- ===================================================================
 -- source ごとの表示名（メニューにブラケット付きで表示するためのラベル）
 -- ※ providers.*.name は blink.compat がソース実体を解決するための
 -- 「nvim-cmp 側の登録名」なので、表示専用の変換はここで別管理する
@@ -270,15 +295,22 @@ blink.setup({
       "fallback",
     },
 
-    -- 確定は blink 本来の accept に一本化する（自前挿入はしない）
-    ["<CR>"] = { "accept", "fallback" },
-    -- ["<CR>"] = {
-    --   "accept",
-    --   function(cmp)
-    --     return cmp.accept({ force = true })
-    --   end,
-    --   "fallback",
-    -- },
+    -- 確定は blink 本来の accept に一本化する（自前挿入はしない）。
+    -- 2番目の関数は egg_like_newline 対策のガード（詳細はファイル末尾の
+    -- SkkHenkanChanged ハンドラ周辺のコメント参照）。skk.nvim側の確定直後
+    -- （SkkHenkanChanged が phase="idle" になった直後の1回）だけ、
+    -- fallback（素の <CR> ＝改行挿入）をスキップする。
+    ["<CR>"] = {
+      "accept",
+      function()
+        if vim.g.my_skk_cr_fallback_guard then
+          vim.g.my_skk_cr_fallback_guard = false
+          return true
+        end
+        return false
+      end,
+      "fallback",
+    },
   },
 
   -- -------------------------------------------------------------
@@ -517,10 +549,19 @@ blink.setup({
 -- show() が無視され、候補リストが更新されないまま止まる
 -- （skk.nvim README「実装上の既知のクセ」参照）。
 -- ===================================================================
+-- ===================================================================
+-- 【<CR>によるegg_like_newline改行バグ対策】
+-- フラグ本体（my_skk_cr_fallback_guard）とその経緯はファイル冒頭参照。
+-- ここでは SkkHenkanChanged が phase="idle" になった直後にフラグを立てる。
+-- ===================================================================
 vim.api.nvim_create_autocmd("User", {
   pattern = "SkkHenkanChanged",
   callback = function(ev)
     local phase = ev.data and ev.data.phase
+
+    if phase == "idle" then
+      vim.g.my_skk_cr_fallback_guard = true
+    end
 
     if phase == "select" then
       -- ▼変換候補選択中: skk.nvim 自身の候補選択ウィンドウと表示が
