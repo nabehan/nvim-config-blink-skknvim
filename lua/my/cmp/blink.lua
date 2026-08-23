@@ -300,17 +300,18 @@ blink.setup({
     -- SkkHenkanChanged ハンドラ周辺のコメント参照）。skk.nvim側の確定直後
     -- （SkkHenkanChanged が phase="idle" になった直後の1回）だけ、
     -- fallback（素の <CR> ＝改行挿入）をスキップする。
-    ["<CR>"] = {
-      "accept",
-      function()
-        if vim.g.my_skk_cr_fallback_guard then
-          vim.g.my_skk_cr_fallback_guard = false
-          return true
-        end
-        return false
-      end,
-      "fallback",
-    },
+    ["<CR>"] = { "accept", "fallback" },
+    -- ["<CR>"] = {
+    --   "accept",
+    --   function()
+    --     if vim.g.my_skk_cr_fallback_guard then
+    --       vim.g.my_skk_cr_fallback_guard = false
+    --       return true
+    --     end
+    --     return false
+    --   end,
+    --   "fallback",
+    -- },
   },
 
   -- -------------------------------------------------------------
