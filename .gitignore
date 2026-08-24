@@ -36,3 +36,4 @@ local.lua
 !.env.example
 
 ./search_test.md
+./onkey_debug.lua
