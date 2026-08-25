@@ -87,8 +87,8 @@ skk.setup({
     skkserv_candidate_limit = 50,
   },
 
-  period = "．", -- デフォルトは "。"
-  comma = "，", -- デフォルトは "、"
+  period = "。", -- デフォルトは "。"
+  comma = "、", -- デフォルトは "、"
 })
 
 -- skkeleton の <Plug>(skkeleton-enable) 相当のキーマップ。
