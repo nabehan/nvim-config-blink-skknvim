@@ -30,6 +30,7 @@ return {
         "lua",
         "vim",
         "vimdoc",
+        "regex",
         "query",
 
         "bash",

@@ -7,10 +7,10 @@ return {
     build = "make",
   },
 
-  {
-    "tzachar/fuzzy.nvim",
-    dependencies = { "nvim-telescope/telescope-fzf-native.nvim" },
-  },
+  -- {
+  --   "tzachar/fuzzy.nvim",
+  --   dependencies = { "nvim-telescope/telescope-fzf-native.nvim" },
+  -- },
 
   {
     "nvim-telescope/telescope.nvim",

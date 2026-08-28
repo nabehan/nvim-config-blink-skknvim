@@ -5,7 +5,9 @@
 - **日本語入力:** [skk.nvim](https://github.com/nabehan/skk.nvim)（denops 非依存・Lua 実装、blink.cmp ネイティブソース同梱）
 - **対象バージョン:** NVIM v0.12 以降
 - **OS:** Manjaro Linux (x86_64)
-- **由来:** この設定は [nvim-config-blink-skkeleton](https://github.com/nabehan/nvim-config-blink-skkeleton) をベースに、日本語入力を skkeleton から自作の skk.nvim へ置き換えたもの。lazy.nvim・blink.cmp まわりの構成やその他のプラグインは元設定を踏襲しており、SKK 関連の設定・連携部分だけが作り直されている。
+- **由来:** この設定は [nvim-config-blink-skkeleton](https://github.com/nabehan/nvim-config-blink-skkeleton) をベースに改変
+  - 日本語入力を skkeleton から自作の skk.nvim へ置き換え、SKK 関連の設定・連携部分のみ作り直した。
+  - lazy.nvim・blink.cmp まわりの構成やその他のプラグインは元設定を踏襲した。
 
 ---
 
@@ -55,7 +57,10 @@
             └── yank_insert.lua     # Yank 履歴挿入
 ```
 
-`onkey_debug.lua` と `search_test.md` は、skk.nvim と nvim-autopairs の相性問題を調査した際の診断用ファイル（詳細は [skk.nvim README](https://github.com/nabehan/skk.nvim#nvim-autopairs-との相性問題実機で発見重要) 参照）。問題は skk.nvim v0.1.1 で解決済みのため通常の利用では不要だが、記録として残してある。
+- **`onkey_debug.lua` と `search_test.md` について**
+  - skk.nvim と nvim-autopairs の相性問題を調査した際の診断用ファイル
+    -詳細は [skk.nvim README](https://github.com/nabehan/skk.nvim#nvim-autopairs-との相性問題実機で発見重要) 参照
+  - 問題は skk.nvim v0.1.1 で解決済みのため通常の利用では不要だが、記録として残してある。
 
 ---
 
@@ -71,9 +76,11 @@ git clone git@github.com:nabehan/nvim-config-blink-skknvim.git ~/.config/nvim-bl
 NVIM_APPNAME=nvim-blink-skknvim nvim
 ```
 
-`~/.bashrc`/`~/.zshrc` 等に alias（例: `alias nvim-skk="NVIM_APPNAME=nvim-blink-skknvim nvim"`）を用意しておくと便利。
-
-blink.cmp は Rust 製フュージーマッチャーのプリビルドバイナリを GitHub Releases から取得するため、初回起動時にネットワーク接続が必要（`fuzzy.implementation = "prefer_rust_with_warning"` を指定しているので、取得に失敗した場合は自動的に純 Lua 実装にフォールバックする）。
+- `~/.bashrc`/`~/.zshrc` 等に alias（例: `alias nvim-skk="NVIM_APPNAME=nvim-blink-skknvim nvim"`）を用意しておくと便利。
+- blink.cmp は Rust 製フュージーマッチャーのプリビルドバイナリを GitHub Releases から取得する
+- そのため、初回起動時にネットワーク接続が必要
+  - `fuzzy.implementation = "prefer_rust_with_warning"` を指定
+  - 目的は取得に失敗した場合に自動的に純 Lua 実装にフォールバックするため
 
 ### 初回起動後の追加作業
 
@@ -82,7 +89,8 @@ blink.cmp は Rust 製フュージーマッチャーのプリビルドバイナ�
 :TSInstall regex
 ```
 
-skk.nvim 側の辞書・skkserv（yaskkserv2）の準備は [skk.nvim README](https://github.com/nabehan/skk.nvim) 参照。`:checkhealth skk` でセットアップ状態を診断できる。
+- skk.nvim 側の辞書・skkserv（yaskkserv2）の準備は [skk.nvim README](https://github.com/nabehan/skk.nvim) 参照。
+- `:checkhealth skk` でセットアップ状態を診断できる。
 
 ---
 
@@ -106,12 +114,16 @@ skk.nvim 側の辞書・skkserv（yaskkserv2）の準備は [skk.nvim README](ht
 > **注意（重要）:**
 >
 > - `vim-denops/denops.vim` は `lazy=false` を明示的に設定すること。skk.nvim 自体は denops 非依存だが、他のプラグイン（markdown-preview.nvim 等）が denops に依存しているため引き続き必要。
-> - `nvim-autopairs` は **`map_cr = false` を必ず指定すること**。`true` のままだと `InsertEnter` のたびに autopairs が挿入モードの `<CR>` を上書きし、blink.cmp の補完確定キーマップが機能しなくなる。その代わり、関数呼び出し確定時の括弧自動補完は `lua/my/cmp/blink.lua` 側の `completion.accept.auto_brackets.enabled = true` で担っている。
+> - `nvim-autopairs` は **`map_cr = false` を必ず指定すること**。
+>   - `true` のままだと `InsertEnter` のたびに autopairs が挿入モードの `<CR>` を上書きし、blink.cmp の補完確定キーマップが機能しなくなる。
+>   - その代わり、関数呼び出し確定時の括弧自動補完は `lua/my/cmp/blink.lua` 側の `completion.accept.auto_brackets.enabled = true` で担っている。
 > - nvim-autopairs と skk.nvim の日本語入力（ひらがな/カタカナ/全角英数モード）との相性問題（挿入位置の割り込み・カーソル位置のずれ）は、skk.nvim v0.1.1 で解決済み。それ以前のバージョンでは既知の不具合があった。
 
 ### 02-colorschemes.lua — カラースキーム
 
-現在の使用テーマ: **kanagawa**（`lazy=false, priority=1000` で最優先ロード）。切り替えは `init.lua` 末尾の `vim.cmd[[colorscheme <name>]]` を変更する。
+- 現在の使用テーマ: **kanagawa**
+  - `lazy=false, priority=1000` で最優先ロード。
+- 切り替えは `init.lua` 末尾の `vim.cmd[[colorscheme <name>]]` を変更する。
 
 ### 03-ui.lua — UI 関連
 
@@ -133,9 +145,11 @@ skk.nvim 側の辞書・skkserv（yaskkserv2）の準備は [skk.nvim README](ht
 
 ### 04-treesitter.lua — Treesitter
 
-自動インストール対象パーサー: lua / vim / vimdoc / query / bash / python / json / yaml / toml / markdown / markdown_inline / latex / typst / r / julia / commonlisp
-
-`nvim-treesitter` の `main` ブランチ（新API）に対応済み。旧 `master` ブランチの `require("nvim-treesitter.configs")` は Neovim 0.12 系では非対応のため、`vim.treesitter.start()` を `FileType` autocmd で自前で呼び出す方式に書き換えてある（詳細は `04-treesitter.lua` 冒頭のコメント参照）。
+- 自動インストール対象パーサー:
+  - lua / vim / vimdoc / query / bash / python / json / yaml / toml / markdown / markdown_inline / latex / typst / r / julia / commonlisp
+- `nvim-treesitter` の `main` ブランチ（新API）に対応済み。
+- 旧 `master` ブランチの `require("nvim-treesitter.configs")` は Neovim 0.12 系では非対応
+- そのため、`vim.treesitter.start()` を `FileType` autocmd で自前で呼び出す方式に書き換えてある（詳細は `04-treesitter.lua` 冒頭のコメント参照）。
 
 ### 05-telescope.lua — ファジーファインダー
 
@@ -152,11 +166,14 @@ skk.nvim 側の辞書・skkserv（yaskkserv2）の準備は [skk.nvim README](ht
 | gbprod/yanky.nvim             | yank 履歴管理                                  |
 | kkharji/sqlite.lua            | frecency 用 SQLite                             |
 
-> **注意:** telescope.nvim は `tag`/`branch` 指定なしで使用する（`tag = "0.1.8"` は Neovim 0.12 で廃止 API によりエラーになる）。
+> **注意:**
+>
+> - telescope.nvim は `tag`/`branch` 指定なしで使用する。
+> - `tag = "0.1.8"` は Neovim 0.12 で廃止 API によりエラーになる。
 
 ### 06-lsp.lua — LSP・補完
 
-**LSP 管理:**
+#### **LSP 管理:**
 
 | プラグイン                        | 概要                                                |
 | --------------------------------- | --------------------------------------------------- |
@@ -165,26 +182,31 @@ skk.nvim 側の辞書・skkserv（yaskkserv2）の準備は [skk.nvim README](ht
 | williamboman/mason-lspconfig.nvim | mason と lspconfig の橋渡し・自動ハンドラ           |
 | jay-babu/mason-null-ls.nvim       | フォーマッタ・リンター管理（automatic_setup: true） |
 
-**自動インストール LSP サーバー:** bashls / julials / lua_ls / markdown_oxide / pyright / r_language_server / texlab / tinymist / vimls
-
-**自動インストール フォーマッタ・リンター（mason-null-ls）:** beautysh / shellcheck / stylua / ruff / prettier
+- **自動インストール LSP サーバー:**
+  - bashls / julials / lua_ls / markdown_oxide / pyright / r_language_server / texlab / tinymist / vimls
+- **自動インストール フォーマッタ・リンター（mason-null-ls）:**
+  - beautysh / shellcheck / stylua / ruff / prettier
 
 #### 補完エンジン: blink.cmp
 
-`hrsh7th/nvim-cmp` から `saghen/blink.cmp` に移行済み。設定本体は `lua/my/cmp/blink.lua`（`06-lsp.lua` の `config()` から `require("my.cmp.blink")` として読み込まれる）。
+- `hrsh7th/nvim-cmp` から `saghen/blink.cmp` に移行済み。
+- 設定本体は `lua/my/cmp/blink.lua`（`06-lsp.lua` の `config()` から `require("my.cmp.blink")` として読み込まれる）。
 
-**プラグイン構成の要点（`06-lsp.lua`）:**
+#### **プラグイン構成の要点（`06-lsp.lua`）:**
 
 - `saghen/blink.cmp` は **`version = "1.*"` に固定**する。v2 は開発中で設定スキーマに破壊的変更が入るため、`version = "*"`（最新タグ追従）にすると意図せず互換性のない版を掴む可能性がある。
 - `calc` / `emoji` / `latex_symbols` / `spell` / `rg` は blink.cmp にネイティブ実装が無いため、`saghen/blink.compat` 経由で旧 nvim-cmp 用ソースをそのまま利用する。
-- `skk`（skk.nvim）は本体同梱のネイティブ blink.cmp ソース（`skk.blink_source`）を使う。`blink.compat` は経由しない。`require("skk").setup({ blink = {...} })` を呼ぶだけでソースの登録・実装が完結しており、skkeleton 時代のような専用ソースファイルや nvim-cmp 偽装シムは一切不要（後述）。
+- `skk`（skk.nvim）は本体同梱のネイティブ blink.cmp ソース（`skk.blink_source`）を使う。`blink.compat` は経由しない。
+- `require("skk").setup({ blink = {...} })` を呼ぶだけでソースの登録・実装が完結しており、skkeleton 時代のような専用ソースファイルや nvim-cmp 偽装シムは一切不要（後述）。
 - `blink.compat` の `opts.impersonate_nvim_cmp = true` を指定すること。nvim-cmp 本体をインストールしていないため、各ソース内部にある `require("cmp")`（`cmp.lsp.CompletionItemKind` 等の参照）をシムして解決する必要がある。
 
-**`sources.providers.*.name` の注意点（ハマりどころ）:**
+#### **`sources.providers.*.name` の注意点（ハマりどころ）:**
 
-`blink.compat` は `providers.<id>.name` を **「nvim-cmp 側での登録名」として使って実体モジュール（`cmp_calc` 等）を解決する**。そのため `name` に表示用のラベル（`"[CALC]"` など）を入れてしまうと、実体を解決できずに候補が一切表示されなくなる。表示上のブラケット付きラベルは `completion.menu.draw.components.source_name.text` 関数側で付与しており、`calc` / `emoji` / `latex_symbols` / `spell` / `rg` の `name` フィールドはソースの実名のまま変更しないこと。（`skk` はネイティブソースのためこの制約は無関係。`name` は自由に `"[SKK]"` のような表示用ラベルにしてよい。）
+- `blink.compat` は `providers.<id>.name` を **「nvim-cmp 側での登録名」として使って実体モジュール（`cmp_calc` 等）を解決する**。
+- そのため `name` に表示用のラベル（`"[CALC]"` など）を入れてしまうと、実体を解決できずに候補が一切表示されなくなる。
+- 表示上のブラケット付きラベルは `completion.menu.draw.components.source_name.text` 関数側で付与しており、`calc` / `emoji` / `latex_symbols` / `spell` / `rg` の `name` フィールドはソースの実名のまま変更しないこと。（`skk` はネイティブソースのためこの制約は無関係。`name` は自由に `"[SKK]"` のような表示用ラベルにしてよい。）
 
-**source 構成（`lua/my/cmp/blink.lua` の `default_sources()`）:**
+#### **source 構成（`lua/my/cmp/blink.lua` の `default_sources()`）:**
 
 ```
 common          = skk / snippets(LuaSnip) / lsp / path / calc / emoji / latex_symbols / buffer / spell
@@ -193,7 +215,7 @@ writing_sources = common - buffer    ← markdown / text / mdx
 それ以外        = common のみ
 ```
 
-cmdline（`:` `/` `?`）補完は別途 `cmdline.sources` で定義しており、`:` では `cmdline` / `path` / `buffer` / `regex`、`/` `?` では `buffer` / `regex` を使用する。
+- cmdline（`:` `/` `?`）補完は別途 `cmdline.sources` で定義しており、`:` では `cmdline` / `path` / `buffer` / `regex`、`/` `?` では `buffer` / `regex` を使用する。
 
 | ソース                                          | 表示ラベル | 概要                                                    |
 | ----------------------------------------------- | ---------- | ------------------------------------------------------- |
@@ -209,36 +231,56 @@ cmdline（`:` `/` `?`）補完は別途 `cmdline.sources` で定義しており�
 | skk（ネイティブ: skk.blink_source）             | `[SKK]`    | SKK 変換候補（score_offset:100 で最優先表示）           |
 | regex（カスタム・blinkネイティブ、cmdline専用） | `[REGEX]`  | Vim 正規表現キーワード                                  |
 
-**SKK（skk.nvim）との連携（`lua/my/utils/skk.lua` + `lua/my/cmp/blink.lua`）:**
+#### **SKK（skk.nvim）との連携（`lua/my/utils/skk.lua` + `lua/my/cmp/blink.lua`）:**
 
-- `require("skk").setup({...})` は `lua/my/utils/skk.lua` で行う。内部で `skk.blink_source.setup()` を自動的に呼ぶため、blink.cmp 側の `setup()` が完了した**後**に呼ぶ必要がある（呼び出し順は `init.lua` のコメント参照）。
-- 補完候補は `sources.providers.skk`（`module = "skk.blink_source"`）が skk.nvim 内部の変換候補を直接返す。`▽`/`▼` の表示は skk.nvim 自身の extmark（仮想テキスト）で行われ実バッファは変化しないため、`SkkHenkanChanged`（`User` autocmd）で phase の変化を検知し、`▽`/`abbrev` 中だけ `blink.show({ providers = { "skk" } })` を呼んで手動でメニューを更新している。`providers` を省略すると、読みが伸びても2回目以降の `show()` が無視され候補が更新されないまま止まるので注意（skk.nvim README「実装上の既知のクセ」参照）。
-- **`<CR>` の egg_like_newline 対策:** skk.nvim は `<CR>` に独自のキーマップを持たず `vim.on_key()`（観測専用）のみで確定処理を行うため、素のままでは blink.cmp 側の `<CR>` キーマップの `fallback`（素の改行挿入）が確定後も必ず実行されてしまう。`SkkHenkanChanged` が `phase="idle"` になった直後の1回だけ `require("skk").confirm_henkan()` の戻り値を見てこの `fallback` をスキップするガードを入れてある（`blink.lua` 冒頭 `my_skk_cr_fallback_guard` 周辺のコメント参照）。
-- **`vim.g.my_skk_suppress_blink_on_select`（デバッグ用スイッチ、既定 `false`）:** skkeleton 版では「▼（変換候補選択）状態では blink.cmp 全体を無効化する」設計だったが、この設定では表示の重複が発生しないことを確認済みのため、既定では無効化せず `hide()`/`show()` の切り替えのみで対応している。実機固有の問題かどうかを切り分けたくなった場合は `true` にすると skkeleton 版と同じ「▼状態で blink.cmp 全体を止める」動作に戻せる。
-- **skkeleton 版との違い:** blink.cmp を nvim-cmp として認識させるシム（`skkeleton_cmp_shim.lua`）は不要。skk.nvim は `capture.lua` の `passthrough_guard`（blink.cmp の `is_visible()` を見て自身の自動確定ロジックを止める仕組み）で外部UIとのキー競合に対処しており、`setup({ blink = {...} })` 内部で自動的に登録される。nvim-cmp を偽装する必要がない。
+- `require("skk").setup({...})` は `lua/my/utils/skk.lua` で行う。
+  - 内部で `skk.blink_source.setup()` を自動的に呼ぶため、blink.cmp 側の `setup()` が完了した**後**に呼ぶ必要がある（呼び出し順は `init.lua` のコメント参照）。
+- 補完候補は `sources.providers.skk`（`module = "skk.blink_source"`）が skk.nvim 内部の変換候補を直接返す。
+  - `▽`/`▼` の表示は skk.nvim 自身の extmark（仮想テキスト）で行われ実バッファは変化しないため、`SkkHenkanChanged`（`User` autocmd）で phase の変化を検知し、`▽`/`abbrev` 中だけ `blink.show({ providers = { "skk" } })` を呼んで手動でメニューを更新している。
+  - `providers` を省略すると、読みが伸びても2回目以降の `show()` が無視され候補が更新されないまま止まるので注意（skk.nvim README「実装上の既知のクセ」参照）。
+- **`<CR>` の egg_like_newline 対策:**
+  - skk.nvim は `<CR>` に独自のキーマップを持たず `vim.on_key()`（観測専用）のみで確定処理を行うため、素のままでは blink.cmp 側の `<CR>` キーマップの `fallback`（素の改行挿入）が確定後も必ず実行されてしまう。
+  - `SkkHenkanChanged` が `phase="idle"` になった直後の1回だけ `require("skk").confirm_henkan()` の戻り値を見てこの `fallback` をスキップするガードを入れてある（`blink.lua` 冒頭 `my_skk_cr_fallback_guard` 周辺のコメント参照）。
+- **`vim.g.my_skk_suppress_blink_on_select`（デバッグ用スイッチ、既定 `false`）:**
+  - skkeleton 版では「▼（変換候補選択）状態では blink.cmp 全体を無効化する」設計だったが、この設定では表示の重複が発生しないことを確認済みのため、既定では無効化せず `hide()`/`show()` の切り替えのみで対応している。
+  - 実機固有の問題かどうかを切り分けたくなった場合は `true` にすると skkeleton 版と同じ「▼状態で blink.cmp 全体を止める」動作に戻せる。
+- **skkeleton 版との違い:** nvim-cmp を偽装する必要がない。
+  - blink.cmp を nvim-cmp として認識させるシム（`skkeleton_cmp_shim.lua`）は不要。
+  - skk.nvim は `capture.lua` の `passthrough_guard`（blink.cmp の `is_visible()` を見て自身の自動確定ロジックを止める仕組み）で外部UIとのキー競合に対処しており、`setup({ blink = {...} })` 内部で自動的に登録される。
 
-**スニペット（`LuaSnipCustom.lua` / `luasnip_source.lua`）:**
+#### **スニペット（`LuaSnipCustom.lua` / `luasnip_source.lua`）:**
 
-補完メニューには `lua/my/cmp/luasnip_source.lua`（ネイティブソース）がトリガー文字列（`dw`・`today` 等）をプレーンテキストの候補として出す。**実際のスニペット展開・ノード間ジャンプは行わない**。展開・ジャンプは `lua/my/cmp/blink.lua` の `<Tab>` キーマップが `luasnip.expand_or_jump()`（安定版の公開 API）を呼ぶことで行う（旧 nvim-cmp + `saadparwaiz1/cmp_luasnip` と同じ設計。組み込みの `snippets = { preset = "luasnip" }` を使わない理由は既知のハマりどころ7番参照）。
+- 補完メニューには `lua/my/cmp/luasnip_source.lua`（ネイティブソース）がトリガー文字列（`dw`・`today` 等）をプレーンテキストの候補として出す。
+- **実際のスニペット展開・ノード間ジャンプは行わない**。
+- 展開・ジャンプは `lua/my/cmp/blink.lua` の `<Tab>` キーマップが `luasnip.expand_or_jump()`（安定版の公開 API）を呼ぶことで行う。
+  - 旧 nvim-cmp + `saadparwaiz1/cmp_luasnip` と同じ設計。
+- 組み込みの `snippets = { preset = "luasnip" }` を使わない理由は既知のハマりどころ7番参照）。
 
 登録されているオリジナルスニペット（`lua/my/cmp/LuaSnipCustom.lua`）:
 
-| トリガー   | 出力例                         | 備考                                                                                        |
-| ---------- | ------------------------------ | ------------------------------------------------------------------------------------------- |
-| `today_jp` | `2026-08-27 Thursday`          | 今日の日付＋曜日（日本語）                                                                  |
-| `today`    | `2026-08-27 Thu`               | 今日の日付＋曜日（英略）                                                                    |
-| `now_jp`   | `2026-08-27 Thursday 14:30:00` | 現在日時＋曜日（日本語）                                                                    |
-| `now`      | `2026-08-27 Thu 14:30:00`      | 現在日時＋曜日（英略）                                                                      |
-| `dw`       | `2026-08-27 木曜日` 等         | 任意の日付を入力すると曜日を自動算出して付加。日本語/英略/英語を `<C-l>`/`<C-h>` で切り替え |
+| トリガー   | 出力例                       | 備考                                                                                        |
+| ---------- | ---------------------------- | ------------------------------------------------------------------------------------------- |
+| `today_jp` | `2026-08-27 木曜日`          | 今日の日付＋曜日（日本語）                                                                  |
+| `today`    | `2026-08-27 Thu`             | 今日の日付＋曜日（英略）                                                                    |
+| `now_jp`   | `2026-08-27 木曜日 14:30:00` | 現在日時＋曜日（日本語）                                                                    |
+| `now`      | `2026-08-27 Thu 14:30:00`    | 現在日時＋曜日（英略）                                                                      |
+| `dw`       | `2026-08-27 木曜日` 等       | 任意の日付を入力すると曜日を自動算出して付加。日本語/英略/英語を `<C-l>`/`<C-h>` で切り替え |
 
-`dw` スニペットの操作手順: `dw` と入力 → `<Tab>` で展開 → `YYYY-MM-DD` 形式で日付を入力 → `<Tab>` で曜日ノードへジャンプ → `<C-l>`/`<C-h>` で `土曜日` → `Sat` → `Saturday` を切り替え → `<Tab>` で確定。日付から曜日は `calc_weekday()`（`os.time`/`os.date` ベース）で自動算出しているため、存在しない日付（`2026-02-30` 等）を入力すると `(??)` と表示される。
+##### `dw` スニペットの操作手順:
 
-**`[SNIP]` ソースの確定と展開の関係について:**
+- `dw` と入力 → `<Tab>` で展開 → `YYYY-MM-DD` 形式で日付を入力 → `<Tab>` で曜日ノードへジャンプ → `<C-l>`/`<C-h>` で `土曜日` → `Sat` → `Saturday` を切り替え → `<Tab>` で確定。
+- 日付から曜日は `calc_weekday()`（`os.time`/`os.date` ベース）で自動算出しているため、存在しない日付（`2026-02-30` 等）を入力すると `(??)` と表示される。
 
-- `<C-n>`/`<C-p>` は補完候補一覧から選ぶための操作。入力途中の文字列が複数のスニペットに部分一致していて、どれを選ぶか確定させたい場合に使う。
-- `<CR>` は選んだ候補の**トリガー文字列をプレーンテキストとして挿入するだけ**で、その時点ではまだ**展開されない**（`luasnip_source.lua` は `execute()` を持たないため、確定＝素のテキスト挿入で終わる）。
-- 実際にスニペットへ展開するのは別操作の `<Tab>` である。バッファ上にトリガー文字列（例: `dw`）が存在する状態で `<Tab>` を押すと `luasnip.expand_or_jump()` が呼ばれ、そこで初めて展開される。
-- そのため、`dw` のようにトリガー文字列を過不足なく正確にタイプできている場合は、候補一覧から明示的に選ばなくても、その場で `<Tab>` を押すだけで展開できる。`<C-n>`/`<C-p>` → `<CR>` が必要になるのは、あくまで複数候補から選びたい場合のみ。
+#### **`[SNIP]` ソースの確定と展開の関係について:**
+
+- `<C-n>`/`<C-p>` は補完候補一覧から選ぶための操作。
+  - 入力途中の文字列が複数のスニペットに部分一致していて、どれを選ぶか確定させたい場合に使う。
+- `<CR>` は選んだ候補の**トリガー文字列をプレーンテキストとして挿入するだけ**で、その時点ではまだ**展開されない**
+  - `luasnip_source.lua` は `execute()` を持たないため、確定＝素のテキスト挿入で終わる。
+- 実際にスニペットへ展開するのは別操作の `<Tab>` である。
+  - バッファ上にトリガー文字列（例: `dw`）が存在する状態で `<Tab>` を押すと `luasnip.expand_or_jump()` が呼ばれ、そこで初めて展開される。
+- そのため、`dw` のようにトリガー文字列を過不足なく正確にタイプできている場合は、候補一覧から明示的に選ばなくても、その場で `<Tab>` を押すだけで展開できる。
+  - `<C-n>`/`<C-p>` → `<CR>` が必要になるのは、あくまで複数候補から選びたい場合のみ。
 
 ### 07-markdown.lua — Markdown・Typst・LaTeX
 
@@ -264,7 +306,7 @@ cmdline（`:` `/` `?`）補完は別途 `cmdline.sources` で定義しており�
 | lambdalisue/vim-kensaku-command | `:Kensaku` コマンド               |
 | yuki-yano/fuzzy-motion.vim      | Migemo × fuzzy のジャンプ移動     |
 
-`S` キーで FuzzyMotion を起動。
+- `S` キーで FuzzyMotion を起動。
 
 ### 09-notify-skk.lua — 通知・日本語入力
 
@@ -275,14 +317,17 @@ cmdline（`:` `/` `?`）補完は別途 `cmdline.sources` で定義しており�
 | MunifTanjim/nui.nvim | UI コンポーネントライブラリ                                                              |
 | nabehan/skk.nvim     | SKK 日本語入力（本体・詳細は[skk.nvim README](https://github.com/nabehan/skk.nvim)参照） |
 
-`setup()` は `lua/my/utils/skk.lua` で行う（`init.lua` から blink.cmp の `setup()` 完了後に `require` される）。blink.cmp ネイティブソース（`skk.blink_source`）も本体に同梱のため、skkeleton 版で必要だった `skkeleton_indicator.nvim` や `skkeleton_cmp_shim.lua` 相当の追加プラグイン・ブリッジコードは不要。
+- `setup()` は `lua/my/utils/skk.lua` で行う。
+  - `init.lua` から blink.cmp の `setup()` 完了後に `require` される。
+- blink.cmp ネイティブソース（`skk.blink_source`）も本体に同梱のため、skkeleton 版で必要だった `skkeleton_indicator.nvim` や `skkeleton_cmp_shim.lua` 相当の追加プラグイン・ブリッジコードは不要。
 
-**SKK 設定（`lua/my/utils/skk.lua`）の要点:**
+#### **SKK 設定（`lua/my/utils/skk.lua`）の要点:**
 
-- `enter_key = "<C-j>"`。挿入モード・コマンドラインモードをカバー。Normal モードから `<C-j>` で挿入モードに入りつつ有効化する合成キーマップも別途定義。
+- `enter_key = "<C-j>"`。挿入モード・コマンドラインモードをカバー。
+  - Normal モードから `<C-j>` で挿入モードに入りつつ有効化する合成キーマップも別途定義。
 - `sticky_shift_enabled = true`（`;` キー）、`egg_like_newline = true`。
 - 候補選択ウィンドウ（`candidate_window`）・見出し語/候補の配色をカスタマイズ済み。
-- 個人辞書は skkeleton 版と同じパス（`~/.local/share/skk/SKK-JISYO.user`）を指定しているが、ファイル形式が異なるため学習内容は引き継がれない。
+- 個人辞書は skkeleton 版と同じパス（`~/.local/share/skk/SKK-JISYO.user`）を指定しており、学習内容も引き継がれる。
 - SKKサーバー（yaskkserv2、`127.0.0.1:1178`、`euc-jp`）・ローカル辞書4種（jawiki/edict2/emoji/emoji-ja）を設定済み。
 - 句読点は既定（`period="。"`, `comma="、"`）のまま。
 
@@ -323,7 +368,8 @@ cmdline（`:` `/` `?`）補完は別途 `cmdline.sources` で定義しており�
 
 ### Markdown（markdown/keymap.lua）— オリジナルコマンド
 
-`lua/my/markdown/list.lua`・`table.lua` で定義したオリジナルのユーザーコマンドに対するキーマップ。bullets.vim と連携しつつ、より柔軟な記号選択・変換をカバーする独自実装。
+- `lua/my/markdown/list.lua`・`table.lua` で定義したオリジナルのユーザーコマンドに対するキーマップ。
+- bullets.vim と連携しつつ、より柔軟な記号選択・変換をカバーする独自実装。
 
 | キー         | モード | コマンド                   | 動作                                                                                                                                                          |
 | ------------ | ------ | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -348,7 +394,8 @@ cmdline（`:` `/` `?`）補完は別途 `cmdline.sources` で定義しており�
 補足：
 
 - `BulletizeLine`/`NumberizeLine`/`CheckboxLine`/`QuoteLine` 系はいずれも、既存の箇条書き記号・番号・チェックボックス・引用記号・インデントを一度取り除いてから変換するため、リスト種別の変換や引用の増段・減段を繰り返しても記号が二重に付くことはない。
-- `MyTableFormat`（キーマップなし、`:MyTableFormat` で直接実行）はカーソル位置を含む空行で囲まれたブロックに対して `TableFormat`（tabular.vim）を実行したうえで、`|` で始まる行の行頭空白を削除する。`MarkdownTableBlock` と異なり、既に `|` で区切られた Markdown テーブルの整形専用。
+- `MyTableFormat`（キーマップなし、`:MyTableFormat` で直接実行）はカーソル位置を含む空行で囲まれたブロックに対して `TableFormat`（tabular.vim）を実行したうえで、`|` で始まる行の行頭空白を削除する。
+  - `MarkdownTableBlock` と異なり、既に `|` で区切られた Markdown テーブルの整形専用。
 
 ### Telescope（telescope/keymap.lua）
 
@@ -402,7 +449,9 @@ cmdline（`:` `/` `?`）補完は別途 `cmdline.sources` で定義しており�
 | `<C-f>` / `<C-b>` | ドキュメントをスクロール                                                        |
 | `<C-q>`           | blink.cmp 自体の有効/無効をトグル（n/i）                                        |
 
-コマンドラインモード（`:` `/` `?`）でも blink.cmp の補完が有効。`<CR>` は挿入のみ（`accept`）を割り当てており、実行するにはもう一度 `<CR>` を押す（詳細は既知のハマりどころ5番参照）。
+- コマンドラインモード（`:` `/` `?`）でも blink.cmp の補完が有効。
+- `<CR>` は挿入のみ（`accept`）を割り当てており、実行するにはもう一度 `<CR>` を押す
+  - 詳細は既知のハマりどころ5番参照。
 
 ---
 
@@ -411,34 +460,55 @@ cmdline（`:` `/` `?`）補完は別途 `cmdline.sources` で定義しており�
 過去に実際に発生した不具合とその原因・対処をまとめる。同種の問題が再発した際の切り分けに使うこと。
 
 1. **`<CR>` で候補を確定しても本文に反映されない（挿入モード）**
-   - `nvim-autopairs` の `map_cr` が `true` になっており、挿入モードの `<CR>` を横取りしていないか確認する（`01-base.lua` で `map_cr = false` を指定済みか）。
-   - それでも直らない場合は `<CR>` を `{ "accept", function(cmp) return cmp.accept({ force = true }) end, "fallback" }` にして、blink 自身の範囲検証を強制的にバイパスしてみる。
 
-2. **skk.nvim の `▽`/`▼` で `<CR>` 確定しても改行が入る／入らない**
-   `blink.lua` の `my_skk_cr_fallback_guard` によるガード（`<CR>` キーマップ・`SkkHenkanChanged` 周辺のコメント参照）が正しく動いているか確認する。`require("skk").confirm_henkan()` の呼び出し順・`SkkHenkanChanged` の発火順に依存する実装のため、`lua/my/utils/skk.lua` の `require("skk").setup()` を呼ぶタイミング（blink.cmp の `setup()` 完了後）を変更した場合は特に注意。
+- `nvim-autopairs` の `map_cr` が `true` になっており、挿入モードの `<CR>` を横取りしていないか確認する。
+  - `01-base.lua` で `map_cr = false` を指定済みか）。
+- それでも直らない場合は `<CR>` を `{ "accept", function(cmp) return cmp.accept({ force = true }) end, "fallback" }` にして、blink 自身の範囲検証を強制的にバイパスしてみる。
 
 3. **calc / emoji / latex_symbols / spell / rg などの候補が一切出ない**
-   `sources.providers.<id>.name` を表示用のラベル（`"[CALC]"` など）に書き換えていないか確認する。`blink.compat` はこの `name` を nvim-cmp 側の登録名として実体解決に使うため、変更すると候補ゼロになる。表示上のラベルは `completion.menu.draw.components.source_name.text` 側で付与する。（`skk` はネイティブソースなのでこの制約は無関係。）
+
+- `sources.providers.<id>.name` を表示用のラベル（`"[CALC]"` など）に書き換えていないか確認する。
+- `blink.compat` はこの `name` を nvim-cmp 側の登録名として実体解決に使うため、変更すると候補ゼロになる。
+- 表示上のラベルは `completion.menu.draw.components.source_name.text` 側で付与する。
+  - `skk` はネイティブソースなのでこの制約は無関係。
 
 4. **compat 経由のソースがエラーで動かない**
-   `blink.compat` の `opts.impersonate_nvim_cmp = true` を確認する。nvim-cmp 本体をアンインストールしているため、各ソース内部の `require("cmp")` 参照をシムする必要がある。
+
+- `blink.compat` の `opts.impersonate_nvim_cmp = true` を確認する。
+- nvim-cmp 本体をアンインストールしているため、各ソース内部の `require("cmp")` 参照をシムする必要がある。
 
 5. **コマンドライン補完で候補を選んで `<CR>` しても、選んでいない生の文字列で実行されてしまう**
-   （例: `:laz` と入力 → `C-n` で `Lazy` を選択 → `<CR>` → `E492: Not an editor command: laz`）
-   `cmdline.keymap` に `<CR>` が明示的に定義されているか確認する（既定プリセットの `<CR>` は `accept` 系にバインドされておらず、素の `<CR>` に落ちる）。挿入と実行を両方行いたい場合は `accept_and_enter` を割り当てる（現在の設定は「挿入のみ」の `accept` を採用しており、実行にはもう一度 `<CR>` が必要。理由は `blink.lua` のコメント参照）。
+
+- 例: `:laz` と入力 → `C-n` で `Lazy` を選択 → `<CR>` → `E492: Not an editor command: laz`
+- `cmdline.keymap` に `<CR>` が明示的に定義されているか確認する
+  - 既定プリセットの `<CR>` は `accept` 系にバインドされておらず、素の `<CR>` に落ちる。
+- 挿入と実行を両方行いたい場合は `accept_and_enter` を割り当てる。
+  - 現在の設定は「挿入のみ」の `accept` を採用しており、実行にはもう一度 `<CR>` が必要。理由は `blink.lua` のコメント参照。
 
 6. **コマンドライン/検索で、何も選んでいないのに先頭候補が勝手にコマンドラインへ反映されてしまう**
-   （例: `:w` と打っただけで `:wq` になってしまう）
-   `cmdline.completion.list.selection` の `preselect`/`auto_insert` が `true` になっていないか確認する。両方 `false` にし、`<C-n>`/`<C-p>` で明示的に選んだときだけ反映されるようにする。
+
+- 例: `:w` と打っただけで `:wq` になってしまう。
+- `cmdline.completion.list.selection` の `preselect`/`auto_insert` が `true` になっていないか確認する。
+- 両方 `false` にし、`<C-n>`/`<C-p>` で明示的に選んだときだけ反映されるようにする。
 
 7. **`dw` スニペットで日付を入力後、`<Tab>` で曜日ノードへジャンプしようとすると反応しない、または `E5108: Lua: .../luasnip/init.lua:625: E565: Not allowed to change text or change window` エラーが出る**
-   - `<Tab>`/`<C-l>`/`<C-h>` のカスタム関数が成功時に `return true` しているか確認する（blink.cmp のキーマップは関数が `nil`/`false` を返すと次のアクション＝`fallback` へ進む仕様）。
-   - 組み込みの `snippets = { preset = "luasnip" }` は使わないこと（未マージの LuaSnip PR に依存した実験的実装で、確定直後に LuaSnip 内部のセッション追跡が壊れる不具合が確認されている）。`luasnip_source.lua` + `<Tab>` キーマップでの `expand_or_jump()` に一本化してある。
-   - `<Tab>`/`<S-Tab>`/`<C-l>`/`<C-h>` の実際の `nvim_buf_set_text` 呼び出しは `vim.schedule` で1ティック遅延させてあるか確認する（blink.cmp のキーマップ実行コンテキスト内で直接呼ぶと E565 になる）。
+
+- `<Tab>`/`<C-l>`/`<C-h>` のカスタム関数が成功時に `return true` しているか確認する。
+  - blink.cmp のキーマップは関数が `nil`/`false` を返すと次のアクション＝`fallback` へ進む仕様。
+- 組み込みの `snippets = { preset = "luasnip" }` は使わないこと。
+  - 未マージの LuaSnip PR に依存した実験的実装で、確定直後に LuaSnip 内部のセッション追跡が壊れる不具合が確認されている。
+- `luasnip_source.lua` + `<Tab>` キーマップでの `expand_or_jump()` に一本化してある。
+- `<Tab>`/`<S-Tab>`/`<C-l>`/`<C-h>` の実際の `nvim_buf_set_text` 呼び出しは `vim.schedule` で1ティック遅延させてあるか確認する
+  - blink.cmp のキーマップ実行コンテキスト内で直接呼ぶと E565 になる。
 
 8. **skk.nvim のひらがな/カタカナ・全角英数モードで、nvim-autopairs 併用時に文字化けやカーソル位置のずれが起きる**
-   skk.nvim を v0.1.1 以降に更新する（`git -C ~/.local/share/nvim-blink-skknvim/lazy/skk.nvim pull` 等）。v0.1.0 系にはこの相性問題が存在した。詳細な原因・修正内容は [skk.nvim README](https://github.com/nabehan/skk.nvim#nvim-autopairs-との相性問題実機で発見重要) の「nvim-autopairs との相性問題」参照。
+
+- skk.nvim を v0.1.1 以降に更新する。
+  - `git -C ~/.local/share/nvim-blink-skknvim/lazy/skk.nvim pull` 等。
+- v0.1.0 系にはこの相性問題が存在した。詳細な原因・修正内容は [skk.nvim README](https://github.com/nabehan/skk.nvim#nvim-autopairs-との相性問題実機で発見重要) の「nvim-autopairs との相性問題」参照。
 
 9. **原因不明の挙動変化があった場合**
-   - `06-lsp.lua` の `saghen/blink.cmp` が `version = "1.*"` に固定されているか確認する。バージョン指定を `"*"` にすると、開発中の v2（設定スキーマに破壊的変更あり）を意図せず取得する可能性がある。
-   - skk.nvim 側の不具合が疑われる場合は `:checkhealth skk` でセットアップ状態を確認し、[skk.nvim リポジトリ](https://github.com/nabehan/skk.nvim)の CHANGELOG・既知の制限も合わせて確認する。
+
+- `06-lsp.lua` の `saghen/blink.cmp` が `version = "1.*"` に固定されているか確認する。
+- バージョン指定を `"*"` にすると、開発中の v2（設定スキーマに破壊的変更あり）を意図せず取得する可能性がある。
+- skk.nvim 側の不具合が疑われる場合は `:checkhealth skk` でセットアップ状態を確認し、[skk.nvim リポジトリ](https://github.com/nabehan/skk.nvim)の CHANGELOG・既知の制限も合わせて確認する。
