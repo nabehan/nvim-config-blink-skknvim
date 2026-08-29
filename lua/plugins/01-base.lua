@@ -53,6 +53,33 @@ return {
     end,
   },
 
+  -- {
+  --   "echasnovski/mini.pairs",
+  --   event = "InsertEnter",
+  --   opts = {}, -- これだけでデフォルトのカッコ補完がすべて有効になります
+  -- },
+
+  -- {
+  --   "m4xshen/autoclose.nvim",
+  --   event = "InsertEnter",
+  --   config = function()
+  --     require("autoclose").setup({
+  --       -- デフォルトで非常にシンプルに動作し、<CR> の競合が起きにくい設計です
+  --     })
+  --   end,
+  -- },
+
+  -- {
+  --   "altermo/ultimate-autopair.nvim",
+  --   -- インサートモードとコマンドラインモードの進入時に読み込む（公式推奨）
+  --   event = { "InsertEnter", "CmdlineEnter" },
+  --   branch = "v0.6",
+  --   opts = {
+  --     -- blink.cmp 側の確定を邪魔しないよう、改行（CR）のマッピングをオフにする
+  --     cr = { enable = false },
+  --   },
+  -- },
+
   {
     "kylechui/nvim-surround",
     version = "*",
