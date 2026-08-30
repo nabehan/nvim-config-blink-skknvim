@@ -578,6 +578,21 @@ blink.setup({
 -- abbrev と同じ capture.lua の defer_to_external_ui 判定を共有しており、
 -- 理論上は同種の不具合が起こりうるため（現時点では abbrev 以外での
 -- 実害の報告はない）。
+-- 【対応プラグイン】現在有効化しているのは nvim-autopairs のみだが、
+-- 乗り換えを見据えて ultimate-autopair.nvim・mini.pairs 用の呼び出しも
+-- あらかじめ用意してある。
+-- - nvim-autopairs / ultimate-autopair.nvim: enable()/disable() が
+--   対称に用意されているため、同じ書き方で済む。pcall(require, ...) は
+--   対象プラグインが入っていなければ ok=false になるだけなので、
+--   実際には使っていないプラグイン分のコードが残っていても無害。
+-- - mini.pairs: 関数呼び出しではなく vim.g.minipairs_disable への
+--   代入で無効化する設計（require すら不要。mini.pairs が実際に
+--   キーマップを評価する瞬間に読まれる）。
+-- - autoclose.nvim（https://github.com/m4xshen/autoclose.nvim）は
+--   今回未対応。toggle() しか公開されておらず、望む状態を無条件に
+--   セットするこのパターンがそのままでは使えないため（現在の状態を
+--   別途追跡し、望む状態と食い違うときだけ toggle() を呼ぶラッパーが
+--   別途必要）。
 -- ===================================================================
 vim.api.nvim_create_autocmd("User", {
   pattern = "SkkHenkanChanged",
@@ -596,6 +611,17 @@ vim.api.nvim_create_autocmd("User", {
         autopairs.disable()
       end
     end
+
+    local ok_ultimate, ultimate_autopair = pcall(require, "ultimate-autopair")
+    if ok_ultimate then
+      if phase == "idle" then
+        ultimate_autopair.enable()
+      else
+        ultimate_autopair.disable()
+      end
+    end
+
+    vim.g.minipairs_disable = (phase ~= "idle")
 
     if phase == "select" then
       -- ▼変換候補選択中: skk.nvim 自身の候補選択ウィンドウと表示が

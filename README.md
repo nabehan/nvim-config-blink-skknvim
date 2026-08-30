@@ -59,8 +59,9 @@
 
 - **`onkey_debug.lua` と `search_test.md` について**
   - skk.nvim と nvim-autopairs の相性問題を調査した際の診断用ファイル
-    -詳細は [skk.nvim README](https://github.com/nabehan/skk.nvim#nvim-autopairs-との相性問題実機で発見重要) 参照
-  - 問題は skk.nvim v0.1.1 で解決済みのため通常の利用では不要だが、記録として残してある。
+    - 詳細は [skk.nvim README](https://github.com/nabehan/skk.nvim#nvim-autopairs-との相性問題実機で発見重要) 参照
+  - 問題（挿入位置の割り込み・カーソル位置のずれ）は skk.nvim v0.1.1 で解決済み。
+  - その後発見された abbrev モードでの別の相性問題（既知のハマりどころ10番参照）の調査でも、実機でのキー入力ログ採取に再利用した。この問題は skk.nvim 本体ではなく `blink.lua` 側の対応（`SkkHenkanChanged` での `nvim-autopairs` の enable/disable 切り替え）で解決済みのため、いずれも通常の利用では不要だが、記録として残してある。
 
 ---
 
@@ -118,6 +119,7 @@ NVIM_APPNAME=nvim-blink-skknvim nvim
 >   - `true` のままだと `InsertEnter` のたびに autopairs が挿入モードの `<CR>` を上書きし、blink.cmp の補完確定キーマップが機能しなくなる。
 >   - その代わり、関数呼び出し確定時の括弧自動補完は `lua/my/cmp/blink.lua` 側の `completion.accept.auto_brackets.enabled = true` で担っている。
 > - nvim-autopairs と skk.nvim の日本語入力（ひらがな/カタカナ/全角英数モード）との相性問題（挿入位置の割り込み・カーソル位置のずれ）は、skk.nvim v0.1.1 で解決済み。それ以前のバージョンでは既知の不具合があった。
+> - abbrev モード（`/` から始める見出し入力）で見出しが空・候補0件のまま記号を打鍵すると、プレエディットが即座に確定してしまう別の相性問題があった。skk.nvim 本体の修正ではなく、`lua/my/cmp/blink.lua` の `SkkHenkanChanged` ハンドラで henkan（▽/▼/abbrev）アクティブ中は `require("nvim-autopairs").disable()`、`idle` に戻ったら `enable()` を呼ぶ方式で解決した（詳細は下記「既知のハマりどころ」10番、および [skk.nvim README](https://github.com/nabehan/skk.nvim#abbrev-モードでのオートペア相性問題と推奨される回避策実機で発見重要) 参照）。
 
 ### 02-colorschemes.lua — カラースキーム
 
@@ -512,3 +514,11 @@ writing_sources = common - buffer    ← markdown / text / mdx
 - `06-lsp.lua` の `saghen/blink.cmp` が `version = "1.*"` に固定されているか確認する。
 - バージョン指定を `"*"` にすると、開発中の v2（設定スキーマに破壊的変更あり）を意図せず取得する可能性がある。
 - skk.nvim 側の不具合が疑われる場合は `:checkhealth skk` でセットアップ状態を確認し、[skk.nvim リポジトリ](https://github.com/nabehan/skk.nvim)の CHANGELOG・既知の制限も合わせて確認する。
+
+10. **abbrev モード（`/` から始める見出し入力）で `"` `'` `` ` `` `(` `[` `{` を打鍵すると、プレエディットが解除され閉じ記号ごと即座に確定してしまう**
+
+- 例: `<C-j>/(` のように `/` の直後に `(` を打つと、`▽(` のままのはずが `()` として即座に確定してしまう。
+- 原因は nvim-autopairs 等が生成する合成キー列（`<C-g>u()<C-g>U<Left><C-g>u`）が、blink.cmp のライブ補完がまだ一度も表示されていない間に skk.nvim 側の「外部UIが見えていなければ見出しを確定する」フォールバックを誤発火させてしまうこと（詳細調査は [skk.nvim README](https://github.com/nabehan/skk.nvim#abbrev-モードでのオートペア相性問題と推奨される回避策実機で発見重要) 参照）。
+- `capture.lua` 側の合成キー列を解釈するパッチも試したが、ヘッドレス環境では解消したにもかかわらず実機では解消せず、原因未特定のまま revert した。
+- 最終的に `lua/my/cmp/blink.lua` の `SkkHenkanChanged` ハンドラで、henkan（▽/▼/abbrev）アクティブ中は `require("nvim-autopairs").disable()`、`idle` に戻ったら `enable()` を呼ぶ方式で解決した（skk.nvim 本体は無変更）。この設定は現在の `blink.lua` に反映済みなので、通常の利用では追加の対応は不要。
+- 副次的に、見出しに開き文字だけでなく自動挿入された閉じ文字まで混入してしまう問題（`(` を打っても見出しが `"("` ではなく `"()"` になる）も同時に解消している。

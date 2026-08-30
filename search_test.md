@@ -476,10 +476,9 @@ end
   - https://github.com/m4xshen/autoclose.nvim.git
   - https://github.com/altermo/ultimate-autopair.nvim.git
 
-# 2026-08-30 日曜日 17:49:17
+# 2026-08-30 日曜日 21:00:06
 
-様々な括弧記号を出したければ </>Abbrevモード に遷移し、"'()`[]{} を試す
-
-いろはにほへとアポストロフィ『いつでも検索を実施するには
+- セッションが中断していましたが、続きから生成を再開してください。
+- 更新したファイルの準備が整ったら、Artifact に示してください。
 
 end
