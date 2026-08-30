@@ -40,24 +40,24 @@ return {
     end,
   },
 
-  {
-    "windwp/nvim-autopairs",
-    event = "InsertEnter",
-    config = function()
-      require("nvim-autopairs").setup({
-        -- <CR> は blink.cmp 側の確定キーマップに任せる。
-        -- true のままだと InsertEnter のたびに autopairs が <CR> を
-        -- 上書きし、補完メニューの確定ができなくなる。
-        map_cr = false,
-      })
-    end,
-  },
-
   -- {
-  --   "echasnovski/mini.pairs",
+  --   "windwp/nvim-autopairs",
   --   event = "InsertEnter",
-  --   opts = {}, -- これだけでデフォルトのカッコ補完がすべて有効になります
+  --   config = function()
+  --     require("nvim-autopairs").setup({
+  --       -- <CR> は blink.cmp 側の確定キーマップに任せる。
+  --       -- true のままだと InsertEnter のたびに autopairs が <CR> を
+  --       -- 上書きし、補完メニューの確定ができなくなる。
+  --       map_cr = false,
+  --     })
+  --   end,
   -- },
+
+  {
+    "echasnovski/mini.pairs",
+    event = "InsertEnter",
+    opts = {}, -- これだけでデフォルトのカッコ補完がすべて有効になります
+  },
 
   -- {
   --   "altermo/ultimate-autopair.nvim",
