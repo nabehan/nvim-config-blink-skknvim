@@ -453,12 +453,27 @@ end
 ## abbrevモードでの記号入力からの変換に期待している動作
 
 - skkの辞書には 半角記号が見出しになっている項目があります。
-- <i><C-j></><(><SPC> から （ , ［ ,『 , 【 , 〔 , 左小かっこ , left parenthesis , に変換できる辞書になっているんです。
+- <i><C-j></><(><SPC> から （ , ［ ,『っっj , 【 , 〔 , 左小かっこ , left parenthesis , に変換できる辞書になっているんです。
 - <(> の他にも <"> <'> <`> <[> <{> でも 通常バッファの abbrevモード で期待できる動作を実現できていません。
 - しかし不思議なことに、コマンドラインや検索モードでは、期待したとおりの動作が実現できています。
 
 ひきつづき、検討をよろしくおねがいします。相棒!
 
-()
+# 2026-08-30 日曜日 04:20:49
+
+## 最小環境とコマンドライン入力は問題なし
+
+- 最小環境の nvim-snd と、nvim-skk の コマンドライン入力や検索入力では、先程のセッションで提示してくれた capture.lua でも、abbrevモードで期待の動作が実現できていました。
+
+## autopairs との相性が悪いなら、モードに応じて抑止してしまえないか?
+
+- この問題に nvim-autopairs 自体の on/off を切り替えて対応できないのでしょうか？
+- skk.nvim の 半角英数モードと全角英数モードでだけ autopairs を有効にして、それ以外ではautopairs は抑止しておく。
+  - つまり、abbrevモードがある ひらがなモード と カタカナモードでは autopairs を抑止する
+- または、abbrevモードが開始されたら autopairs を抑止する。
+- もし、nvim-autopairs では、このような状況に応じた on/off が不可能なら、他の autopairs 系プラグインに切替えてもいいでしょう。
+  - https://github.com/nvim-mini/mini.pairs.git
+  - https://github.com/m4xshen/autoclose.nvim.git
+  - https://github.com/altermo/ultimate-autopair.nvim.git
 
 end

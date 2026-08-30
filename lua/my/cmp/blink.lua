@@ -553,6 +553,32 @@ blink.setup({
 -- フラグ本体（my_skk_cr_fallback_guard）とその経緯はファイル冒頭参照。
 -- ここでは SkkHenkanChanged が phase="idle" になった直後にフラグを立てる。
 -- ===================================================================
+-- ===================================================================
+-- 【nvim-autopairs との相性対策】henkan（▽/▼/abbrev）アクティブ中は
+-- nvim-autopairs を丸ごと無効化し、phase="idle" に戻ったら再度有効化する。
+--
+-- 【経緯】nvim-autopairs 等が対応する閉じ文字を自動挿入する際に生成する
+-- 合成キー列（Vim標準のアンドゥ境界制御イディオム `<C-g>u`/`<C-g>U` +
+-- カーソル移動）を skk.nvim 側（capture.lua）で個別に解釈・無害化する
+-- パッチを試したが、ヘッドレス環境（実機と同一のNeovim v0.12.4バイナリ）
+-- では症状の解消を確認できたにもかかわらず、実機では解消せず、原因も
+-- 特定できなかった（キー入力ログ・修正コードの反映自体は実機・ヘッドレス
+-- 双方で一致を確認済み）。合成キー列を後追いで解釈するアプローチ自体の
+-- 脆弱性・再現性の低さを踏まえ、そもそも henkan アクティブ中は
+-- nvim-autopairs 自体を動かさない、という方針に切り替えた
+-- （skk.nvim側の当該パッチは revert 済み）。
+--
+-- 【なぜこの位置か】既存の blink.cmp 表示制御と同じ SkkHenkanChanged
+-- ハンドラに相乗りさせる。skk.nvim 本体には手を入れず、実機設定
+-- （このリポジトリ）側だけで完結する。プラグインを差し替える場合は
+-- ここの enable()/disable() 呼び出しだけを差し替えれば良い。
+--
+-- 【対象範囲】ひとまず abbrev だけでなく、▽（midashi）・▼（select）を
+-- 含む henkan アクティブ中全体を対象にする。▽（midashi）フェーズも
+-- abbrev と同じ capture.lua の defer_to_external_ui 判定を共有しており、
+-- 理論上は同種の不具合が起こりうるため（現時点では abbrev 以外での
+-- 実害の報告はない）。
+-- ===================================================================
 vim.api.nvim_create_autocmd("User", {
   pattern = "SkkHenkanChanged",
   callback = function(ev)
@@ -560,6 +586,15 @@ vim.api.nvim_create_autocmd("User", {
 
     if phase == "idle" then
       vim.g.my_skk_cr_fallback_guard = true
+    end
+
+    local ok_autopairs, autopairs = pcall(require, "nvim-autopairs")
+    if ok_autopairs then
+      if phase == "idle" then
+        autopairs.enable()
+      else
+        autopairs.disable()
+      end
     end
 
     if phase == "select" then
