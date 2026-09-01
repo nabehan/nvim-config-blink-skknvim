@@ -205,12 +205,45 @@ vim.api.nvim_create_user_command("TelescopeSelectTab", function()
 end, {})
 
 -- -------------------------------------------------------------------
--- Telescopu 入力ウィンドウで<C-j>でSkkEnable にする
+-- Telescope 入力ウィンドウで<C-j>でSkkEnable にする
+-- -------------------------------------------------------------------
+-- Telescope 入力ウィンドウで<C-n>/<C-p>を、henkan（▼）アクティブ時は
+-- skk.nvimの候補フォーカス移動へ、そうでない時はTelescope本来の結果一覧
+-- 移動へ、という形で使い分ける
+--
+-- 【背景】skk.nvim 本体の候補フォーカス移動（lua/skk/init.lua の
+-- candidate_navigation、既定 <C-n>/<C-p>）はグローバルな vim.keymap.set()
+-- で実装されているが、Telescope自身も<C-n>/<C-p>にバッファローカルな実
+-- キーマップ（move_selection_next/previous、TelescopeResultsの選択移動）を
+-- 持っており、Neovimの仕様上バッファローカルは常にグローバルより優先される
+-- ため、Telescopeプロンプト内ではskk.nvim側のグローバルマッピングは
+-- 事実上発火しない（実機で確認）。
+-- <C-n>/<C-p>自体（手癖）は変えたくないので、Telescopeバッファに限り
+-- バッファローカルで上書きし、henkanアクティブ時はskk.nvim側
+-- （M.focus_next_candidate()/M.focus_prev_candidate()、henkan非アクティブ
+-- なら false を返すのみで何もしない）を優先し、henkan非アクティブ時は
+-- Telescope本来のmove_selection_next/previousへフォールバックする。
 -- -------------------------------------------------------------------
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "TelescopePrompt",
   callback = function(args)
     vim.keymap.set("i", "<C-j>", "<Cmd>SkkEnable<CR>", {
+      buffer = args.buf,
+      silent = true,
+    })
+    vim.keymap.set("i", "<C-n>", function()
+      if not require("skk").focus_next_candidate() then
+        require("telescope.actions").move_selection_next(args.buf)
+      end
+    end, {
+      buffer = args.buf,
+      silent = true,
+    })
+    vim.keymap.set("i", "<C-p>", function()
+      if not require("skk").focus_prev_candidate() then
+        require("telescope.actions").move_selection_previous(args.buf)
+      end
+    end, {
       buffer = args.buf,
       silent = true,
     })
