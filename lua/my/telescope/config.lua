@@ -207,43 +207,28 @@ end, {})
 -- -------------------------------------------------------------------
 -- Telescope 入力ウィンドウで<C-j>でSkkEnable にする
 -- -------------------------------------------------------------------
--- Telescope 入力ウィンドウで<C-n>/<C-p>を、henkan（▼）アクティブ時は
--- skk.nvimの候補フォーカス移動へ、そうでない時はTelescope本来の結果一覧
--- 移動へ、という形で使い分ける
+-- 【背景】skk.nvim 本体の enter_key（既定 <C-j>）は挿入モードの実キーマップ
+-- （vim.keymap.set）だが、Telescope自身が<C-j>にバッファローカルで
+-- actions.nop（改行誤挿入防止のための無害化、Telescope側の実質的な機能は
+-- 無い）を割り当てており、Neovimの仕様上バッファローカルが優先されるため
+-- 事実上発火しない。Telescopeバッファに限りバッファローカルで上書きする。
 --
--- 【背景】skk.nvim 本体の候補フォーカス移動（lua/skk/init.lua の
--- candidate_navigation、既定 <C-n>/<C-p>）はグローバルな vim.keymap.set()
--- で実装されているが、Telescope自身も<C-n>/<C-p>にバッファローカルな実
--- キーマップ（move_selection_next/previous、TelescopeResultsの選択移動）を
--- 持っており、Neovimの仕様上バッファローカルは常にグローバルより優先される
--- ため、Telescopeプロンプト内ではskk.nvim側のグローバルマッピングは
--- 事実上発火しない（実機で確認）。
--- <C-n>/<C-p>自体（手癖）は変えたくないので、Telescopeバッファに限り
--- バッファローカルで上書きし、henkanアクティブ時はskk.nvim側
--- （M.focus_next_candidate()/M.focus_prev_candidate()、henkan非アクティブ
--- なら false を返すのみで何もしない）を優先し、henkan非アクティブ時は
--- Telescope本来のmove_selection_next/previousへフォールバックする。
+-- 【候補一覧（▼）のフォーカス移動（<C-n>/<C-p>）について】
+-- 同じ理屈で <C-n>/<C-p> もTelescope側の実キーマップ（結果一覧の移動）に
+-- 競り負ける。Telescope側でバッファローカルに上書きする対処も試したが、
+-- ▼状態のキー処理は CTRL_N/CTRL_P/space/x/ホームポジション選択 以外の
+-- キーを無条件で自動確定するフォールバックを持ち、これは vim.on_key() が
+-- 実キーマップの解決より先に発火するため、Telescope側の上書きが実行される
+-- 前に確定が起きてしまい、統合層（この設定ファイル）だけでは解決できな
+-- かった（実機で確認）。そのため <C-n>/<C-p> 自体には手を入れず、
+-- skk.nvim 本体の setup()（lua/my/utils/skk.lua）側で
+-- extra_candidate_next_key/extra_candidate_prev_key に <C-Up>/<C-Down> を
+-- 割り当てる方式に変更した。
 -- -------------------------------------------------------------------
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "TelescopePrompt",
   callback = function(args)
     vim.keymap.set("i", "<C-j>", "<Cmd>SkkEnable<CR>", {
-      buffer = args.buf,
-      silent = true,
-    })
-    vim.keymap.set("i", "<C-n>", function()
-      if not require("skk").focus_next_candidate() then
-        require("telescope.actions").move_selection_next(args.buf)
-      end
-    end, {
-      buffer = args.buf,
-      silent = true,
-    })
-    vim.keymap.set("i", "<C-p>", function()
-      if not require("skk").focus_prev_candidate() then
-        require("telescope.actions").move_selection_previous(args.buf)
-      end
-    end, {
       buffer = args.buf,
       silent = true,
     })

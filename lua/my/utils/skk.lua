@@ -33,6 +33,16 @@ skk.setup({
 
   egg_like_newline = true,
 
+  -- 候補一覧（▼）のフォーカス移動（<C-n>/<C-p>相当）の追加キー。
+  -- Telescope 等、自身が <C-n>/<C-p> をバッファローカルな実キーマップで
+  -- 占有する外部UIのプロンプト内では skk.nvim 本体の <C-n>/<C-p>
+  -- （candidate_navigation）が事実上機能しないため、それらの外部UIでは
+  -- 未使用のキーをここで追加の候補送りキーとして割り当てる（詳細は
+  -- lua/skk/init.lua の extra_candidate_next_key/extra_candidate_prev_key
+  -- のコメント参照）。<C-n>/<C-p>自体は変更しない。
+  extra_candidate_next_key = "<C-Down>",
+  extra_candidate_prev_key = "<C-Up>",
+
   candidate_window = {
     border = "rounded", -- "rounded"/"single"/"double"/"none"/省略時 "rounded"
     annotation = true, -- 候補一覧に辞書の注釈表示 省略時 true
