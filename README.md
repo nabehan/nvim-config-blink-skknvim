@@ -172,6 +172,11 @@ NVIM_APPNAME=nvim-blink-skknvim nvim
 >
 > - telescope.nvim は `tag`/`branch` 指定なしで使用する。
 > - `tag = "0.1.8"` は Neovim 0.12 で廃止 API によりエラーになる。
+> - プロンプト（`buftype="prompt"`）で skk.nvim を使えるよう、`lua/my/telescope/config.lua` の
+>   `FileType TelescopePrompt` オートコマンドでバッファローカルに `<C-j>` を `:SkkEnable` に
+>   上書きしている（Telescope 本体が既定で `<C-j>` を無害化=`actions.nop` しており、そちらが
+>   優先されるため）。候補一覧のフォーカス移動は `<C-n>`/`<C-p>` ではなく `<C-Up>`/`<C-Down>`
+>   （上記 09-notify-skk.lua 参照）。
 
 ### 06-lsp.lua — LSP・補完
 
@@ -328,6 +333,8 @@ writing_sources = common - buffer    ← markdown / text / mdx
 - `enter_key = "<C-j>"`。挿入モード・コマンドラインモードをカバー。
   - Normal モードから `<C-j>` で挿入モードに入りつつ有効化する合成キーマップも別途定義。
 - `sticky_shift_enabled = true`（`;` キー）、`egg_like_newline = true`。
+- `extra_candidate_next_key = "<C-Up>"`/`extra_candidate_prev_key = "<C-Down>"`。
+  - Telescope 等、自身が `<C-n>`/`<C-p>` をバッファローカルな実キーマップで占有する外部UIのプロンプト内では、既定の `<C-n>`/`<C-p>` による候補フォーカス移動が機能しないため、それらの環境向けの追加キー（詳細は後述「既知のハマりどころ」11番、および [skk.nvim README](https://github.com/nabehan/skk.nvim#telescope-等外部uiとの-c-nc-p-競合と-extra_candidate_next_keyextra_candidate_prev_key実機で発見重要) 参照）。
 - 候補選択ウィンドウ（`candidate_window`）・見出し語/候補の配色をカスタマイズ済み。
 - 個人辞書は skkeleton 版と同じパス（`~/.local/share/skk/SKK-JISYO.user`）を指定しており、学習内容も引き継がれる。
 - SKKサーバー（yaskkserv2、`127.0.0.1:1178`、`euc-jp`）・ローカル辞書4種（jawiki/edict2/emoji/emoji-ja）を設定済み。
@@ -522,3 +529,10 @@ writing_sources = common - buffer    ← markdown / text / mdx
 - `capture.lua` 側の合成キー列を解釈するパッチも試したが、ヘッドレス環境では解消したにもかかわらず実機では解消せず、原因未特定のまま revert した。
 - 最終的に `lua/my/cmp/blink.lua` の `SkkHenkanChanged` ハンドラで、henkan（▽/▼/abbrev）アクティブ中は `require("nvim-autopairs").disable()`、`idle` に戻ったら `enable()` を呼ぶ方式で解決した（skk.nvim 本体は無変更）。この設定は現在の `blink.lua` に反映済みなので、通常の利用では追加の対応は不要。
 - 副次的に、見出しに開き文字だけでなく自動挿入された閉じ文字まで混入してしまう問題（`(` を打っても見出しが `"("` ではなく `"()"` になる）も同時に解消している。
+
+11. **Telescope のプロンプト内で、henkan の候補一覧（▼）表示中に `<C-n>`/`<C-p>` を押すと、候補移動ではなく即座に確定してしまい Telescope 本来の結果一覧移動が始まる**
+
+- Telescope はプロンプトバッファ（`buftype="prompt"`）に `<C-n>`/`<C-p>` をバッファローカルな実キーマップ（結果一覧の選択移動）として持っており、Neovim の仕様上バッファローカルは常にグローバルより優先される。skk.nvim 本体の `<C-n>`/`<C-p>`（`candidate_navigation`）はグローバルなキーマップのため、Telescope のプロンプト内では事実上機能しない。
+- Telescope 側（この設定リポジトリ）のバッファローカルな上書き＋委譲だけでは解決しない。skk.nvim の ▼状態キー処理は CTRL_N/CTRL_P/space/x/ホームポジション選択以外のキーを無条件で自動確定するフォールバックを持ち、`vim.on_key()` が実キーマップの解決より先に発火するため、Telescope 側の上書きが実行される前に確定が起きてしまう（詳細な経緯・原因は [skk.nvim README](https://github.com/nabehan/skk.nvim#telescope-等外部uiとの-c-nc-p-競合と-extra_candidate_next_keyextra_candidate_prev_key実機で発見重要) 参照）。
+- 対処として、`<C-n>`/`<C-p>` 自体には手を加えず、skk.nvim 本体に追加した `extra_candidate_next_key`/`extra_candidate_prev_key` オプション（`vim.on_key()` 自身が CTRL_N/CTRL_P と同格の追加キーとして認識する）を使い、`lua/my/utils/skk.lua` で `<C-Up>`/`<C-Down>` を割り当てて解決した（実機確認済み）。skk.nvim は v0.1.1 以降（このオプションを含むバージョン）に更新すること。
+- `lua/my/telescope/config.lua` 側の `<C-n>`/`<C-p>` 上書きは不要になったため削除済み。同ファイルに残っているのは `<C-j>`（→`:SkkEnable`）の上書きのみ。
