@@ -59,17 +59,6 @@ return {
     opts = {}, -- これだけでデフォルトのカッコ補完がすべて有効になります
   },
 
-  -- {
-  --   "altermo/ultimate-autopair.nvim",
-  --   -- インサートモードとコマンドラインモードの進入時に読み込む（公式推奨）
-  --   event = { "InsertEnter", "CmdlineEnter" },
-  --   branch = "v0.6",
-  --   opts = {
-  --     -- blink.cmp 側の確定を邪魔しないよう、改行（CR）のマッピングをオフにする
-  --     cr = { enable = false },
-  --   },
-  -- },
-
   {
     "kylechui/nvim-surround",
     version = "*",

@@ -29,6 +29,7 @@ vim.keymap.set({ "n", "x" }, "gp", "<Plug>(YankyGPutAfter)", { noremap = false }
 vim.keymap.set({ "n", "x" }, "gP", "<Plug>(YankyGPutBefore)", { noremap = false })
 vim.keymap.set("n", "<c-p>", "<Plug>(YankyPreviousEntry)", { noremap = false })
 vim.keymap.set("n", "<c-n>", "<Plug>(YankyNextEntry)", { noremap = false })
+
 -- kensaku-search : Migemo検索
 vim.keymap.set("c", "<CR>", "<Plug>(kensaku-search-replace)<CR>", { noremap = false })
 

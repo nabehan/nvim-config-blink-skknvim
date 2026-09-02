@@ -14,6 +14,7 @@ vim.opt.background = "dark"
 -- lazy.nvim 自動インストール
 -- ===================================================================
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+
 if not vim.uv.fs_stat(lazypath) then -- 2026-06-20 Sat 02:14:47
   vim.fn.system({
     "git",
@@ -24,6 +25,7 @@ if not vim.uv.fs_stat(lazypath) then -- 2026-06-20 Sat 02:14:47
     lazypath,
   })
 end
+
 vim.opt.rtp:prepend(lazypath)
 
 -- ===================================================================
@@ -61,6 +63,7 @@ vim.opt.hidden = true
 vim.opt.showcmd = true
 vim.opt.cmdheight = 1
 vim.opt.laststatus = 3
+
 vim.schedule(function()
   vim.opt.clipboard:append({ "unnamedplus" })
 end)

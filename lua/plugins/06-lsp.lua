@@ -67,6 +67,7 @@ return {
       "nvimtools/none-ls.nvim",
       "nvimtools/none-ls-extras.nvim",
     },
+
     config = function()
       local null_ls = require("null-ls")
       local mason_null_ls = require("mason-null-ls")
@@ -127,9 +128,11 @@ return {
       require("my.cmp.blink")
     end,
   },
+
   {
     "L3MON4D3/LuaSnip",
     build = "make install_jsregexp",
   },
+
   { "rafamadriz/friendly-snippets" },
 }
