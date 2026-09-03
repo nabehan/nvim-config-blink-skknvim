@@ -173,10 +173,11 @@ NVIM_APPNAME=nvim-blink-skknvim nvim
 > - telescope.nvim は `tag`/`branch` 指定なしで使用する。
 > - `tag = "0.1.8"` は Neovim 0.12 で廃止 API によりエラーになる。
 > - プロンプト（`buftype="prompt"`）で skk.nvim を使えるよう、`lua/my/telescope/config.lua` の
->   `FileType TelescopePrompt` オートコマンドでバッファローカルに `<C-j>` を `:SkkEnable` に
->   上書きしている（Telescope 本体が既定で `<C-j>` を無害化=`actions.nop` しており、そちらが
->   優先されるため）。候補一覧のフォーカス移動は `<C-n>`/`<C-p>` ではなく `<C-Up>`/`<C-Down>`
->   （上記 09-notify-skk.lua 参照）。
+>   `FileType TelescopePrompt` オートコマンドでバッファローカルに `enter_key`（現在 `<C-\>`）を
+>   `:SkkEnable` に上書きしている（Telescope 本体が既定で `<C-j>` を無害化=`actions.nop` して
+>   おり、`enter_key` にこのキーを使う場合はそちらが優先されるため）。候補一覧のフォーカス
+>   移動は `<C-n>`/`<C-p>` ではなく `extra_candidate_next_key`/`extra_candidate_prev_key`
+>   （上記 09-notify-skk.lua 参照、現在値・注意点は同節参照）。
 
 ### 06-lsp.lua — LSP・補完
 
@@ -330,11 +331,13 @@ writing_sources = common - buffer    ← markdown / text / mdx
 
 #### **SKK 設定（`lua/my/utils/skk.lua`）の要点:**
 
-- `enter_key = "<C-j>"`。挿入モード・コマンドラインモードをカバー。
-  - Normal モードから `<C-j>` で挿入モードに入りつつ有効化する合成キーマップも別途定義。
+- `enter_key = "<C-\>"`。挿入モード・コマンドラインモードをカバー。
+  - 元は既定の `<C-j>` を使っていたが、後述の `extra_candidate_next_key`/`extra_candidate_prev_key` に `<C-j>`/`<C-k>` を割り当てるため、`enter_key` 側を `<C-\>` に変更して空けている（現在試用中、下記「既知のハマりどころ」12番も参照）。
+  - Normal モードから `<C-\>` で挿入モードに入りつつ有効化する合成キーマップも別途定義（`vim.cmd("startinsert")` + `skk.enable()`）。Telescope 側（`05-telescope.lua`）の `<C-j>`→`SkkEnable` 上書きも `<C-\>` に合わせて変更済み。
 - `sticky_shift_enabled = true`（`;` キー）、`egg_like_newline = true`。
-- `extra_candidate_next_key = "<C-Up>"`/`extra_candidate_prev_key = "<C-Down>"`。
+- `extra_candidate_next_key = "<C-j>"`/`extra_candidate_prev_key = "<C-k>"`（**現在試用中、既知のリスクあり**。下記「既知のハマりどころ」12番参照）。
   - Telescope 等、自身が `<C-n>`/`<C-p>` をバッファローカルな実キーマップで占有する外部UIのプロンプト内では、既定の `<C-n>`/`<C-p>` による候補フォーカス移動が機能しないため、それらの環境向けの追加キー（詳細は後述「既知のハマりどころ」11番、および [skk.nvim README](https://github.com/nabehan/skk.nvim#telescope-等外部uiとの-c-nc-p-競合と-extra_candidate_next_keyextra_candidate_prev_key実機で発見重要) 参照）。
+  - 当初 `<C-Up>`/`<C-Down>` で実機確認していたが、ホームポジションに近い代替を求めて `<M-n>`/`<M-p>`（端末依存でESCと分割され誤動作）、`<C-.>`/`<C-,>`（Alacrittyでは動作・Konsoleでは不動作）を試し、いずれも見送った。現在は `enter_key` を空けた `<C-j>`/`<C-k>` を試用中だが、これらはVim/Neovim組み込みの意味（`<C-j>`=改行、`<C-k>`=ダイグラフ入力）を▼状態以外で素通ししてしまうリスクが判明している（12番参照）。安定志向であれば `<C-Right>`/`<C-Left>` 等、CSIシーケンス系のキーに戻すのが無難。
 - 候補選択ウィンドウ（`candidate_window`）・見出し語/候補の配色をカスタマイズ済み。
 - 個人辞書は skkeleton 版と同じパス（`~/.local/share/skk/SKK-JISYO.user`）を指定しており、学習内容も引き継がれる。
 - SKKサーバー（yaskkserv2、`127.0.0.1:1178`、`euc-jp`）・ローカル辞書4種（jawiki/edict2/emoji/emoji-ja）を設定済み。
@@ -534,5 +537,12 @@ writing_sources = common - buffer    ← markdown / text / mdx
 
 - Telescope はプロンプトバッファ（`buftype="prompt"`）に `<C-n>`/`<C-p>` をバッファローカルな実キーマップ（結果一覧の選択移動）として持っており、Neovim の仕様上バッファローカルは常にグローバルより優先される。skk.nvim 本体の `<C-n>`/`<C-p>`（`candidate_navigation`）はグローバルなキーマップのため、Telescope のプロンプト内では事実上機能しない。
 - Telescope 側（この設定リポジトリ）のバッファローカルな上書き＋委譲だけでは解決しない。skk.nvim の ▼状態キー処理は CTRL_N/CTRL_P/space/x/ホームポジション選択以外のキーを無条件で自動確定するフォールバックを持ち、`vim.on_key()` が実キーマップの解決より先に発火するため、Telescope 側の上書きが実行される前に確定が起きてしまう（詳細な経緯・原因は [skk.nvim README](https://github.com/nabehan/skk.nvim#telescope-等外部uiとの-c-nc-p-競合と-extra_candidate_next_keyextra_candidate_prev_key実機で発見重要) 参照）。
-- 対処として、`<C-n>`/`<C-p>` 自体には手を加えず、skk.nvim 本体に追加した `extra_candidate_next_key`/`extra_candidate_prev_key` オプション（`vim.on_key()` 自身が CTRL_N/CTRL_P と同格の追加キーとして認識する）を使い、`lua/my/utils/skk.lua` で `<C-Up>`/`<C-Down>` を割り当てて解決した（実機確認済み）。skk.nvim は v0.1.1 以降（このオプションを含むバージョン）に更新すること。
-- `lua/my/telescope/config.lua` 側の `<C-n>`/`<C-p>` 上書きは不要になったため削除済み。同ファイルに残っているのは `<C-j>`（→`:SkkEnable`）の上書きのみ。
+- 対処として、`<C-n>`/`<C-p>` 自体には手を加えず、skk.nvim 本体に追加した `extra_candidate_next_key`/`extra_candidate_prev_key` オプション（`vim.on_key()` 自身が CTRL_N/CTRL_P と同格の追加キーとして認識する）を使い、`lua/my/utils/skk.lua` で追加キーを割り当てて解決した（実機確認済み）。skk.nvim は v0.1.1 以降（このオプションを含むバージョン）に更新すること。具体的にどのキーを割り当てるかは、下記12番参照。
+- `lua/my/telescope/config.lua` 側の `<C-n>`/`<C-p>` 上書きは不要になったため削除済み。同ファイルに残っているのは `enter_key`（現在 `<C-\>`、→`:SkkEnable`）の上書きのみ。
+
+12. **`extra_candidate_next_key`/`extra_candidate_prev_key` にどのキーを指定するかで、複数の落とし穴を踏んだ（実機で発見・重要）**
+
+- **Alt修飾キー（`<M-n>`/`<A-n>` 等）**: ホームポジションに近く一見良さそうだが、実機では機能しなかった。例: 「人」を選択中に `<M-n>` を押すと、候補移動ではなく「人」がそのまま確定し、直後に `n` が新しいローマ字入力として処理され「人n」のような結果になった。多くの端末はAlt+文字を「ESCを送ってから元の文字を送る」という2バイト方式（ESCプレフィックス）で表現しており、タイミングや端末の実装によっては ESC と文字が別々のキー入力として skk.nvim 側に届いてしまうことがある。ESC 単体は ▼状態の「未対応キーは無条件で確定」フォールバックに落ちて即座に確定し、続く文字は確定後の新しい入力として処理されてしまう。
+- **Ctrl+記号（`<C-.>`/`<C-,>` 等）**: 端末によって結果が割れた（Alacrittyでは動作、Konsoleでは動作せず）。Ctrl+印字可能文字の符号化はKittyキーボードプロトコル対応の有無等、端末依存の部分が大きい。
+- **Vim/Neovim組み込みの意味を持つキー（`<C-j>`/`<C-k>` 等）**: `enter_key` を既定の `<C-j>` から他のキー（`<C-\>` 等）に変更し、空いた `<C-j>` を `extra_candidate_next_key` に、`<C-k>` を `extra_candidate_prev_key` に転用する構成を試用中だが、これには別種のリスクがあると判明した。`extra_candidate_next_key`/`extra_candidate_prev_key` は `vim.on_key()` 経由の処理であり、henkan の ▼状態（候補選択中）でしか認識されない。それ以外の場面（henkan非アクティブ、または ▽状態）で `<C-j>`/`<C-k>` を押すと、Neovim組み込みの既定動作へそのまま素通りしてしまう——`<C-j>` は挿入モードで `<CR>`（改行）と等価に扱われる組み込み動作、`<C-k>` はダイグラフ入力（例: `<C-k>a:` → `ä`）を起動する組み込みキーである（いずれもヘッドレス環境で実際の動作を確認済み）。以前 `enter_key = "<C-j>"` だった頃はこの組み込み動作を実キーマップが常時覆い隠していたため問題化しなかったが、今の構成では `<C-j>`/`<C-k>` はどの実キーマップにも占有されておらず、候補選択中でない時にうっかり押すと、無警告の改行挿入や、次のキー入力がダイグラフ待ちに吸われてしまう不具合につながりうる。
+- **結論**: `<C-Up>`/`<C-Down>`/`<C-Left>`/`<C-Right>` のような矢印キー＋Ctrlは、CSIエスケープシーケンスという「1つの決まった塊」で送られるため符号化面での分割が起きず、かつVim/Neovim組み込みの意味も持たないため、`extra_candidate_next_key`/`extra_candidate_prev_key` にはこの系統のキーを指定するのが最も安全（実機確認済み）。ホームポジションに近いキーを試す場合は、①符号化が1つの塊で届くか（Alt修飾・Ctrl+記号は避ける）、②Neovim組み込みの意味を持たないか、の両方を確認すること。

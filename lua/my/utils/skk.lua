@@ -16,6 +16,7 @@ local skk = require("skk")
 skk.setup({
   -- enter_key = "<C-j>", -- 下行と排他的に指定する
   enter_key = "<C-\\>", -- 下行と排他的に指定する
+  -- enter_key = "<C-;>", -- 下行と排他的に指定する
   -- buffer_enter_key = "<C-j>", cmdline_enter_key = "<C-j>",
 
   -- キーボード配列の都合で変えたい場合に指定する。省略時は現状通り。
