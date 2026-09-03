@@ -371,8 +371,8 @@ writing_sources = common - buffer    ← markdown / text / mdx
 | `<leader>z`               | n      | ウィンドウ全画面化                                       |
 | `S`                       | n      | FuzzyMotion                                              |
 | `jk`                      | i      | ノーマルモードに戻る（`<Esc>` の代替）                   |
-| `<C-;>`                   | i/c    | SKK トグル（skk.nvim。ターミナルでは不安定なので不使用） |
-| `<C-;>`                   | n      | 挿入モードに移行し、SKK かな入力を有効化                 |
+| `<C-j>`                   | i/c    | SKK トグル（skk.nvim。ターミナルでは不安定なので不使用） |
+| `<C-j>`                   | n      | 挿入モードに移行し、SKK かな入力を有効化                 |
 | `<leader>r`               | n      | Ranger ファイル選択（toggleterm 経由）                   |
 | `<leader>at`/`as`         | n      | TAB/スペース区切りで列揃え                               |
 | `<leader>cl`              | n      | 空行整理                                                 |
@@ -456,7 +456,7 @@ writing_sources = common - buffer    ← markdown / text / mdx
 | `<Tab>`           | LuaSnip 展開・ジャンプ（対象がなければ通常の Tab）                              |
 | `<S-Tab>`         | LuaSnip 逆ジャンプ                                                              |
 | `<C-l>` / `<C-h>` | choice_node 次/前の選択肢に切り替え（スニペット内のみ。`dw` 等）                |
-| `<C-Space>`       | 補完を明示的に呼び出す                                                          |
+| `<C-Space> <C-@>` | 補完を明示的に呼び出す                                                          |
 | `<C-e>`           | 補完を閉じる                                                                    |
 | `<C-f>` / `<C-b>` | ドキュメントをスクロール                                                        |
 | `<C-q>`           | blink.cmp 自体の有効/無効をトグル（n/i）                                        |

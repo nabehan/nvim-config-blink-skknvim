@@ -228,9 +228,7 @@ end, {})
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "TelescopePrompt",
   callback = function(args)
-    -- vim.keymap.set("i", "<C-j>", "<Cmd>SkkEnable<CR>", {
-    -- vim.keymap.set("i", "<C-\\>", "<Cmd>SkkEnable<CR>", {
-    vim.keymap.set("i", "<C-;>", "<Cmd>SkkEnable<CR>", {
+    vim.keymap.set("i", "<C-j>", "<Cmd>SkkEnable<CR>", {
       buffer = args.buf,
       silent = true,
     })
