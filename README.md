@@ -371,8 +371,8 @@ writing_sources = common - buffer    ← markdown / text / mdx
 | `<leader>z`               | n      | ウィンドウ全画面化                                       |
 | `S`                       | n      | FuzzyMotion                                              |
 | `jk`                      | i      | ノーマルモードに戻る（`<Esc>` の代替）                   |
-| `<C-j>`                   | i/c    | SKK トグル（skk.nvim。ターミナルでは不安定なので不使用） |
-| `<C-j>`                   | n      | 挿入モードに移行し、SKK かな入力を有効化                 |
+| `<C-;>`                   | i/c    | SKK トグル（skk.nvim。ターミナルでは不安定なので不使用） |
+| `<C-;>`                   | n      | 挿入モードに移行し、SKK かな入力を有効化                 |
 | `<leader>r`               | n      | Ranger ファイル選択（toggleterm 経由）                   |
 | `<leader>at`/`as`         | n      | TAB/スペース区切りで列揃え                               |
 | `<leader>cl`              | n      | 空行整理                                                 |

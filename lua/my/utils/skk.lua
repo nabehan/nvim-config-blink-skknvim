@@ -15,8 +15,8 @@ local skk = require("skk")
 
 skk.setup({
   -- enter_key = "<C-j>", -- 下行と排他的に指定する
-  enter_key = "<C-\\>", -- 下行と排他的に指定する
-  -- enter_key = "<C-;>", -- 下行と排他的に指定する
+  -- enter_key = "<C-\\>", -- 下行と排他的に指定する
+  enter_key = "<C-;>", -- 下行と排他的に指定する
   -- buffer_enter_key = "<C-j>", cmdline_enter_key = "<C-j>",
 
   -- キーボード配列の都合で変えたい場合に指定する。省略時は現状通り。
@@ -114,7 +114,8 @@ skk.setup({
 -- 移植する（skk.nvim には skkeleton の <Plug>(skkeleton-enable) に相当する
 -- 既製のマッピングが無いため、enable() を直接呼ぶ）。
 -- vim.keymap.set("n", "<C-j>", function()
-vim.keymap.set("n", "<C-\\>", function()
+-- vim.keymap.set("n", "<C-\\>", function()
+vim.keymap.set("n", "<C-;>", function()
   vim.cmd("startinsert")
   skk.enable()
 end, { silent = true, desc = "SKKを有効にして挿入モードへ" })
