@@ -29,7 +29,7 @@
     │   ├── 07-markdown.lua         # Markdown・Typst・LaTeX
     │   ├── 08-migemo.lua           # Migemo 検索
     │   ├── 09-notify-skk.lua       # Noice・SKK（skk.nvim）
-    │   └── 10-lisp.lua             # Common Lisp 開発環境（conjure）
+    │   └── 10-lisp.lua             # Common Lisp / Janet 開発環境（conjure）
     └── my/                         # カスタム設定
         ├── autocommand.lua         # オートコマンド（LSP keymap・保存時整形・改行コード変換等）
         ├── keymap.lua              # グローバルキーマップ
@@ -148,10 +148,11 @@ NVIM_APPNAME=nvim-blink-skknvim nvim
 ### 04-treesitter.lua — Treesitter
 
 - 自動インストール対象パーサー:
-  - lua / vim / vimdoc / query / bash / python / json / yaml / toml / markdown / markdown_inline / latex / typst / r / julia / commonlisp
+  - lua / vim / vimdoc / query / bash / python / json / yaml / toml / markdown / markdown_inline / latex / typst / r / julia / commonlisp / janet_simple
 - `nvim-treesitter` の `main` ブランチ（新API）に対応済み。
 - 旧 `master` ブランチの `require("nvim-treesitter.configs")` は Neovim 0.12 系では非対応
 - そのため、`vim.treesitter.start()` を `FileType` autocmd で自前で呼び出す方式に書き換えてある（詳細は `04-treesitter.lua` 冒頭のコメント参照）。
+- Janet のパーサー名は `janet_simple`（filetype は `janet`）。indents クエリが無く、treesitter の indentexpr は全行で 0 を返してしまうため、`no_ts_indent` で indentexpr の設定対象から外している（Janet のインデントは `my/autocommand.lua` で設定）。
 
 ### 05-telescope.lua — ファジーファインダー
 
@@ -194,6 +195,21 @@ NVIM_APPNAME=nvim-blink-skknvim nvim
   - bashls / julials / lua_ls / markdown_oxide / pyright / r_language_server / texlab / tinymist / vimls
 - **自動インストール フォーマッタ・リンター（mason-null-ls）:**
   - beautysh / shellcheck / stylua / ruff / prettier
+- **手動インストールの LSP サーバー（Mason のレジストリに無いもの）:**
+  - janet-lsp（Janet 用）。`janet-lsp` が PATH にあるときだけ `vim.lsp.enable("janet_lsp")` で有効化される（導入後は nvim を再起動）。
+  - インストール（Arch 系では jpm の既定の導入先 `/usr/lib/janet` に書き込めないため、ユーザー領域のツリーに入れる）:
+    ```sh
+    git clone https://github.com/CFiggers/janet-lsp && cd janet-lsp
+    T=$HOME/.local/share/janet-lsp-tree
+    jpm --tree=$T deps && jpm --tree=$T build && jpm --tree=$T install
+    ```
+  - jpm が生成する `bin/janet-lsp` は shebang が存在しない `<tree>/bin/janet` を指し、モジュールもツリー外から探すため、直接は動かない。`~/.local/bin/janet-lsp` に次のラッパーを置く:
+    ```sh
+    #!/bin/sh
+    tree="$HOME/.local/share/janet-lsp-tree"
+    JANET_PATH="$tree/lib" exec janet "$tree/bin/janet-lsp" "$@"
+    ```
+  - 保存時の自動整形（LspAttach の BufWritePre）は janet-lsp の整形機能にも効く。
 
 #### 補完エンジン: blink.cmp
 
@@ -343,12 +359,19 @@ writing_sources = common - buffer    ← markdown / text / mdx
 - SKKサーバー（yaskkserv2、`127.0.0.1:1178`、`euc-jp`）・ローカル辞書4種（jawiki/edict2/emoji/emoji-ja）を設定済み。
 - 句読点は既定（`period="。"`, `comma="、"`）のまま。
 
-### 10-lisp.lua — Common Lisp 開発環境
+### 10-lisp.lua — Common Lisp / Janet 開発環境
 
-| プラグイン             | 概要                                                 |
-| ---------------------- | ---------------------------------------------------- |
-| Olical/conjure         | REPL 駆動開発（SBCL と通信し、式をリアルタイム評価） |
-| gpanders/nvim-parinfer | 括弧の自動バランス補正                               |
+| プラグイン             | 概要                                                           |
+| ---------------------- | -------------------------------------------------------------- |
+| Olical/conjure         | REPL 駆動開発（SBCL / Janet REPL に式を送ってリアルタイム評価） |
+| gpanders/nvim-parinfer | 括弧の自動バランス補正                                         |
+
+#### Janet
+
+- Conjure のクライアントは stdio（`conjure.client.janet.stdio`）。`janet -n -s` が自動起動し、spork は不要。稼働中のプロセスに接続したい場合は `conjure#filetype#janet` を `conjure.client.janet.netrepl` に変える（要 spork）。
+- tree-sitter（`janet_simple`）、LSP（janet-lsp、`06-lsp.lua` 参照）、parinfer（コメント文字 `#` はプラグイン側で設定済み）が有効。
+- Neovim 本体に `ftplugin/janet` が無いため、`my/autocommand.lua` の `FileType janet` で `commentstring`・`iskeyword`・`lisp`・`lispwords` を設定している。
+- `[ ]` や `{ }` の中の継続行は `lisp` モードでは揃わない。保存時の janet-lsp 整形が正しいインデントに直す。
 
 ---
 

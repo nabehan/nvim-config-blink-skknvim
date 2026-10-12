@@ -225,3 +225,43 @@ vim.api.nvim_create_autocmd("FileType", {
     end, 3000) -- 3秒後にウィンドウを閉じる（SWANK の起動を待つ）
   end,
 })
+
+-- ===================================================================
+-- Janet ファイルのバッファローカル設定
+-- ===================================================================
+-- Neovim 本体には ftplugin/janet が無く、そのままだと commentstring が空
+-- （gc でコメントアウトできない）、iskeyword に - ? ! * などが含まれない
+-- （w / * / ciw が defn- や my-func? の途中で切れる）状態になる。
+-- iskeyword は Janet のパーサー自身が受け付けるシンボル文字
+-- （! $ % & * + - . / : < = > ? @ ^ と英数字・_）に合わせてある。
+-- @-@ は '@' 文字、94 は '^' 文字を表す（iskeyword の書式）。
+--
+-- インデント: janet_simple には indents クエリが無く、treesitter の indentexpr
+-- は使えない（04-treesitter.lua の no_ts_indent 参照）。代わりに Vim 標準の
+-- 'lisp' を使い、'lispwords' に Janet 1.42 のコアに実在するマクロ/特殊形式
+-- （本体を 2 桁インデントするもの）を並べる。'lispwords' が既定のままだと
+-- defn などが関数呼び出し扱いになり、本体が引数名の下に揃ってしまう。
+-- [ ] や { } の中の継続行は 'lisp' では揃わない（保存時の janet-lsp による
+-- 整形が正しいインデントに直す）。
+-- stylua: ignore
+local janet_lispwords = {
+  "defn", "defn-", "defmacro", "defmacro-", "def", "def-", "var", "var-", "varfn",
+  "fn", "let", "if", "if-let", "if-not", "if-with", "when", "when-let", "when-with", "unless",
+  "each", "for", "forv", "forever", "loop", "while", "case", "cond", "match",
+  "with", "with-dyns", "with-vars", "try", "protect", "defer", "edefer", "do",
+  "compif", "compwhen", "seq", "tabseq", "generate", "coro", "label", "prompt",
+  "repeat", "catseq", "fiber-fn",
+  "ev/spawn", "ev/do-thread", "ev/spawn-thread", "ev/with-deadline", "ev/gather",
+  "ev/with-lock", "ev/with-rlock", "ev/with-wlock",
+}
+
+vim.api.nvim_create_autocmd("FileType", {
+  group = my_augroup,
+  pattern = "janet",
+  callback = function()
+    vim.bo.commentstring = "# %s"
+    vim.cmd([[setlocal iskeyword+=!,$,%,&,*,+,-,.,/,:,<,=,>,?,@-@,94]])
+    vim.bo.lisp = true
+    vim.opt_local.lispwords = janet_lispwords
+  end,
+})

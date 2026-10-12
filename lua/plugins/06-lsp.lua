@@ -3,7 +3,21 @@ return {
   -- ===================================================================
   -- 1. LSP 基盤 & 管理 (nvim-lspconfig / mason.nvim)
   -- ===================================================================
-  { "neovim/nvim-lspconfig" },
+  {
+    "neovim/nvim-lspconfig",
+    config = function()
+      -- Mason のレジストリに無い LSP サーバー（手動インストール）の有効化。
+      -- 設定本体は nvim-lspconfig 同梱の lsp/<name>.lua（vim.lsp.Config）を
+      -- vim.lsp.enable() が runtimepath から読み込む。
+      --
+      -- janet_lsp: Janet 用 (https://github.com/CFiggers/janet-lsp)
+      --   未インストール時に janet ファイルを開くたびエラーになるのを避けるため、
+      --   実行ファイルが PATH にあるときだけ有効化する（導入後は nvim を再起動）。
+      if vim.fn.executable("janet-lsp") == 1 then
+        vim.lsp.enable("janet_lsp")
+      end
+    end,
+  },
 
   {
     "mason-org/mason.nvim",

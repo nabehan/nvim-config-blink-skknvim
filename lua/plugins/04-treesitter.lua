@@ -46,6 +46,7 @@ return {
         "r",
         "julia",
         "commonlisp",
+        "janet_simple", -- Janet（パーサー名は janet_simple。filetype は janet）
       }
 
       local installed_ok, installed = pcall(function()
@@ -78,6 +79,17 @@ return {
         tex = "latex",
         plaintex = "latex",
         lisp = "commonlisp",
+        janet = "janet_simple",
+      }
+
+      -- indents クエリを持たないパーサーのうち、treesitter の indentexpr を
+      -- 設定しない言語。indents クエリが無いと nvim-treesitter の indentexpr は
+      -- 全行でインデント 0 を返す（実測：gg=G で全行が行頭に潰れる）。
+      -- janet_simple: indents クエリ無し。Janet のインデントは
+      -- lua/my/autocommand.lua の FileType janet で 'lisp' + 'lispwords' により
+      -- 設定している。
+      local no_ts_indent = {
+        janet_simple = true,
       }
 
       -- 旧 highlight.enable / indent.enable 相当：
@@ -100,7 +112,9 @@ return {
           local function enable()
             pcall(vim.treesitter.start, args.buf, lang)
             -- indent: プラグイン側が experimental と明記している機能
-            vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+            if not no_ts_indent[lang] then
+              vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+            end
 
             -- tex/plaintex は vim.treesitter.start() が旧来の syntax を
             -- 自動的に OFF にしてしまうため明示的に ON に戻す。

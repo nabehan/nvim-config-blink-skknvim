@@ -1,6 +1,6 @@
 -- lua/plugins/10-lisp.lua
--- Common Lisp 開発環境
--- conjure: REPL 駆動開発（バッファ内の式を直接 SBCL に送信・評価）
+-- Common Lisp / Janet 開発環境
+-- conjure: REPL 駆動開発（バッファ内の式を直接 SBCL / Janet REPL に送信・評価）
 -- nvim-parinfer: 括弧の自動バランス補正
 
 return {
@@ -10,10 +10,17 @@ return {
   -- -----------------------------------------------------------------
   {
     "Olical/conjure",
-    ft = { "lisp", "commonlisp", "clojure", "scheme", "racket", "fennel" },
+    ft = { "lisp", "commonlisp", "clojure", "scheme", "racket", "fennel", "janet" },
     init = function()
       -- Common Lisp のバックエンドを SBCL に設定
       vim.g["conjure#client#common_lisp#swank#exec"] = "sbcl"
+
+      -- Janet のクライアントに stdio を使う（Conjure 既定は netrepl）。
+      -- stdio は Janet を `janet -n -s` で Neovim 内に自動起動するだけで動き、
+      -- spork も別途の REPL サーバー起動も要らない。
+      -- 稼働中のプロセスに接続したい場合は "conjure.client.janet.netrepl" に
+      -- 戻す（要 spork。`janet -e "(import spork/netrepl) (netrepl/server)"`）。
+      vim.g["conjure#filetype#janet"] = "conjure.client.janet.stdio"
 
       -- ログバッファの表示設定
       vim.g["conjure#log#hud#width"] = 0.42 -- 画面右側42%に表示
@@ -34,6 +41,6 @@ return {
   -- -----------------------------------------------------------------
   {
     "gpanders/nvim-parinfer",
-    ft = { "lisp", "commonlisp", "clojure", "scheme", "racket", "fennel" },
+    ft = { "lisp", "commonlisp", "clojure", "scheme", "racket", "fennel", "janet" },
   },
 }
