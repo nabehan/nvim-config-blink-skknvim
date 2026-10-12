@@ -82,16 +82,6 @@ return {
         janet = "janet_simple",
       }
 
-      -- indents クエリを持たないパーサーのうち、treesitter の indentexpr を
-      -- 設定しない言語。indents クエリが無いと nvim-treesitter の indentexpr は
-      -- 全行でインデント 0 を返す（実測：gg=G で全行が行頭に潰れる）。
-      -- janet_simple: indents クエリ無し。Janet のインデントは
-      -- lua/my/autocommand.lua の FileType janet で 'lisp' + 'lispwords' により
-      -- 設定している。
-      local no_ts_indent = {
-        janet_simple = true,
-      }
-
       -- 旧 highlight.enable / indent.enable 相当：
       -- ensure_installed に含まれる言語の filetype でのみ、
       -- vim.treesitter.start() と treesitter ベースの indentexpr を有効化する。
@@ -111,8 +101,14 @@ return {
 
           local function enable()
             pcall(vim.treesitter.start, args.buf, lang)
-            -- indent: プラグイン側が experimental と明記している機能
-            if not no_ts_indent[lang] then
+            -- indent: プラグイン側が experimental と明記している機能。
+            -- indents クエリが無い言語（vim, latex, commonlisp, janet_simple など）では
+            -- nvim-treesitter の indentexpr が全行でインデント 0 を返し、Vim 標準や
+            -- vimtex が設定するインデントを潰してしまう（実測：gg=G で vim は
+            -- 12 行中 10 行が行頭に潰れる）。そのため indents クエリがある言語にだけ
+            -- 設定する（nvim-treesitter の indentexpr 自身と同じ ts.query.get で判定）。
+            local has_indents, indents_query = pcall(vim.treesitter.query.get, lang, "indents")
+            if has_indents and indents_query then
               vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
             end
 

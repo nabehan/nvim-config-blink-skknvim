@@ -152,7 +152,7 @@ NVIM_APPNAME=nvim-blink-skknvim nvim
 - `nvim-treesitter` の `main` ブランチ（新API）に対応済み。
 - 旧 `master` ブランチの `require("nvim-treesitter.configs")` は Neovim 0.12 系では非対応
 - そのため、`vim.treesitter.start()` を `FileType` autocmd で自前で呼び出す方式に書き換えてある（詳細は `04-treesitter.lua` 冒頭のコメント参照）。
-- Janet のパーサー名は `janet_simple`（filetype は `janet`）。indents クエリが無く、treesitter の indentexpr は全行で 0 を返してしまうため、`no_ts_indent` で indentexpr の設定対象から外している（Janet のインデントは `my/autocommand.lua` で設定）。
+- Janet のパーサー名は `janet_simple`（filetype は `janet`）。indents クエリが無い。treesitter の indentexpr はクエリが無いと全行で 0 を返すため、`04-treesitter.lua` は **indents クエリがある言語にだけ** indentexpr を設定する（vim / latex / commonlisp / janet_simple などは Vim 標準・vimtex 等のインデントのまま。Janet は `my/autocommand.lua` で `lisp` + `lispwords` を設定）。
 
 ### 05-telescope.lua — ファジーファインダー
 
@@ -361,10 +361,10 @@ writing_sources = common - buffer    ← markdown / text / mdx
 
 ### 10-lisp.lua — Common Lisp / Janet 開発環境
 
-| プラグイン             | 概要                                                           |
-| ---------------------- | -------------------------------------------------------------- |
+| プラグイン             | 概要                                                            |
+| ---------------------- | --------------------------------------------------------------- |
 | Olical/conjure         | REPL 駆動開発（SBCL / Janet REPL に式を送ってリアルタイム評価） |
-| gpanders/nvim-parinfer | 括弧の自動バランス補正                                         |
+| gpanders/nvim-parinfer | 括弧の自動バランス補正                                          |
 
 #### Janet
 

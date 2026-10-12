@@ -237,10 +237,10 @@ vim.api.nvim_create_autocmd("FileType", {
 -- @-@ は '@' 文字、94 は '^' 文字を表す（iskeyword の書式）。
 --
 -- インデント: janet_simple には indents クエリが無く、treesitter の indentexpr
--- は使えない（04-treesitter.lua の no_ts_indent 参照）。代わりに Vim 標準の
--- 'lisp' を使い、'lispwords' に Janet 1.42 のコアに実在するマクロ/特殊形式
--- （本体を 2 桁インデントするもの）を並べる。'lispwords' が既定のままだと
--- defn などが関数呼び出し扱いになり、本体が引数名の下に揃ってしまう。
+-- は設定されない（04-treesitter.lua は indents クエリがある言語にだけ設定する）。
+-- 代わりに Vim 標準の 'lisp' を使い、'lispwords' に Janet 1.42 のコアに実在する
+-- マクロ/特殊形式（本体を 2 桁インデントするもの）を並べる。'lispwords' が既定の
+-- ままだと defn などが関数呼び出し扱いになり、本体が引数名の下に揃ってしまう。
 -- [ ] や { } の中の継続行は 'lisp' では揃わない（保存時の janet-lsp による
 -- 整形が正しいインデントに直す）。
 -- stylua: ignore
