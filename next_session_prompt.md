@@ -83,3 +83,55 @@ skk.nvim の開発の続きです。不具合報告・改善要望として、�
 まずは対象リポジトリの現状把握と、上記の不具合・改善要望の原因調査から始めてください。
 
 end
+
+# skk.nvim 開発の続き
+
+# 2026-09-04 金曜日 06:00:13
+
+別チャットから引き継ぎます。今回は（未定・下記「今回やってほしいこと」に記入）という位置づけの作業です。
+
+## 対象リポジトリ
+
+- skk.nvim 本体: https://github.com/nabehan/skk.nvim.git
+- 実機設定（skk.nvim移行検証用）: https://github.com/nabehan/nvim-config-blink-skknvim.git
+- 検証用サンドボックス（nvim-snd で起動）: https://github.com/nabehan/nvim-skk-sandbox.git
+- 参考・変更しない: nvim-config-blink-skkeleton（skkeleton現用設定）、blink.cmp、skkeleton
+
+まず対象リポジトリを clone/pull し、現状を確認するところから始めてください。
+
+## これまでの開発状況（要約）
+
+skk.nvim は denops非依存・Lua実装のNeovim専用SKK日本語入力プラグインとして v0.1.0 を公開済み。ローマ字→かな/カタカナ変換、4モード切替、辞書変換（▽/▼、送りあり/なし/abbrev）、候補選択ウィンドウ、単語登録UI、Sticky-shift、個人辞書、複数辞書マージ、SKKサーバー連携（yaskkserv2）、コマンドラインモード対応、blink.cmpネイティブソース統合、:checkhealth skk を実装済み。
+
+これまでに発見・解決した実機限定の主な不具合（詳細はskk.nvim README.mdの「実機で発見・重要」節、CHANGELOG.md参照）：
+
+- `<CR>`確定時の改行二重挿入（blink.cmp連携、`confirm_henkan_if_active()`/`passthrough_guard`で解決）
+- `<Del>`/`<F11>`キーで誤って▽開始（内部キーコードの大文字誤認、`#key==1`ガードで解決）
+- 全角英数モードで他プラグイン由来の文字列が混入（`<C-r>=`式レジスタイディオムの誤解釈、CTRL_R検知で解決）
+- ひらがな/カタカナ・全角英数モードでのnvim-autopairsとの相性問題（合成キー列`<C-g>u...<C-g>U<Left><C-g>u`の誤解釈による文字化け・促音消失・挿入位置ズレ。extmarkアンカー化＋バッチ書き込み機構`hira_kata_batch`/`zenei_batch`で根本解決）
+- abbrevモードでのオートペア相性問題（skk.nvim本体ではなく、実機設定側`lua/my/cmp/blink.lua`の`SkkHenkanChanged`ハンドラでhenkanアクティブ中はnvim-autopairs等を`disable()`する方式で解決。nvim-autopairs・mini.pairs・ultimate-autopair.nvimに対応済み）
+- Telescope（プロンプト、`buftype="prompt"`）との相性問題：
+  - `<C-j>`（enter_key）：Telescope本体が既定で`<C-j>`をバッファローカルに無害化(`actions.nop`)しており、skk.nvim本体のグローバルキーマップに優先するため発火しない。→ 実機設定側`lua/my/telescope/config.lua`の`FileType TelescopePrompt`オートコマンドでバッファローカルに`<C-j>`→`:SkkEnable`を上書きして解決
+  - `<C-n>`/`<C-p>`（候補フォーカス移動）：同型の問題だが、統合層（実機設定側）だけの上書きでは解決不可能と判明（`vim.on_key()`が実キーマップより先に発火し、▼状態の無条件自動確定フォールバックに落ちてしまうため）。→ skk.nvim本体に`extra_candidate_next_key`/`extra_candidate_prev_key`オプションを新設し、`vim.on_key()`自身がCTRL_N/CTRL_Pと同格の追加キーとして認識する方式で解決
+- `extra_candidate_next_key`/`extra_candidate_prev_key`（および`enter_key`等、キー設定全般）に指定するキーの選定で複数の落とし穴を発見・記録済み（README.md「キーの選び方」節）：Alt修飾キー（端末依存のESCプレフィックス方式で分割されうる）、Ctrl+記号（端末によって符号化対応が割れる）、Vim/Neovim組み込みの意味を持つASCII制御コード（`<C-j>`=改行、`<C-k>`=ダイグラフ入力等、▼状態以外で組み込み動作へ素通りする）はいずれも避けるべきで、CSIシーケンス系のキー（`<C-Up>`/`<C-Down>`/`<C-Left>`/`<C-Right>`等）が最も安定。OS・デスクトップ環境・入力メソッドフレームワーク（KDE Plasma、fcitx5等）側のグローバルショートカットとの衝突もありうる
+
+現在の実機設定（`nvim-config-blink-skknvim`の`lua/my/utils/skk.lua`）は最終的に、`enter_key = "<C-j>"`（既定のまま）、`extra_candidate_next_key = "<C-Left>"`、`extra_candidate_prev_key = "<C-Right>"`に落ち着いている。`<C-n>`/`<C-p>`自体はユーザーの手癖のため変更していない。
+
+現時点で既知の未解決課題は無し。しばらく実運用して不具合が無いか様子見している段階。
+
+## 開発の進め方の前提（これまでの運用）
+
+- 実機（Manjaro Linux/KDE Plasma、Neovim v0.12.4）での動作確認・push は私（ユーザー）が行う。そちらは clone/pull して同期し、push は行わない。
+- 実際のソースを確認してから変更を提案してほしい。存在しない API・オプションを作り出さないこと。
+- 新規作成・変更したファイルは、Artifacts ウィンドウに表示されるリンクとして提示してほしい（チャット内への生コード貼り付けや、ダウンロードリンクではない）。file 作成時は、実ファイルをそのままコピーして diff で完全一致を確認してから提示すること（手打ちでの再構成は絶対にしないこと）。
+- luacheck と `test.sh`（全テストファイルの Failed/Errors 0）の実行・確認をしてから提示する（skk.nvim本体に変更を加える場合）。新規追加した関数がconfirm_henkan_if_active()のような既存の同型関数と比べて専用テストの前例が無い場合、無理に新設せず前例に合わせてよい。
+- タイミング依存の不具合を疑う場合は、`nvim --headless --listen <socket>` + `nvim --server <socket> --remote-send '<keys>'` の方式（実機と同一の Neovim v0.12.4 バイナリを使用。GitHub Releasesから取得可能）で再現・検証すること。
+- **重要（実機で繰り返し学んだ教訓）**：ヘッドレス環境での検証結果を「実機でも通用する」と断定しないこと。特に、Ctrl/Alt修飾キーの`--remote-send`は、実端末とは異なる内部バイト列を生成することがあり、当方が一切変更していない既存機能でも同じ症状を再現して初めて「ヘッドレスの限界」と判明したケースがあった。修飾キーが絡む検証は実機での最終確認を必須とすること。逆に、ヘッドレスで問題が起きても、それが本当にコードの不具合か`--remote-send`固有の符号化アーティファクトかを、当該機能が未変更の既存コードでも同じ症状が出るか比較して切り分けること。
+- バッチ化・アーキテクチャ変更のような大きめの設計変更に着手する場合は、着手前に一声かけてほしい。skk.nvim 本体に手を入れるのではなく、既存の公開イベント/API（`SkkHenkanChanged`等）や統合先（実機設定リポジトリ）側の設定で解決できないかを先に検討する視点を持つこと。ただし、統合層だけでは原理的に解決不可能なケース（`vim.on_key()`と実キーマップの発火順序に起因する問題等）もこれまでに複数あったため、統合層での対処を試して効果がなければ、その原因を明確にした上でskk.nvim本体側の対応を検討してよい。
+- キーバインドを新規に選ぶ提案をする際は、README.mdの「キーの選び方」節にまとめた既知の落とし穴（Alt修飾キー、Ctrl+記号、Vim/Neovim組み込みキー）を踏まえること。
+
+## 今回やってほしいこと
+
+（ここに今回の作業内容を記入してください）
+
+end

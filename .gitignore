@@ -38,3 +38,4 @@ local.lua
 ./search_test.md
 ./onkey_debug.lua
 ./next_session_prompt.md
+./janet.patch

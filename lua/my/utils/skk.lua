@@ -83,10 +83,8 @@ skk.setup({
 
   -- ローカル辞書（skkeleton の globalDictionaries 相当）。
   dictionaries = {
-    { path = "/usr/local/share/skk/SKK-JISYO.jawiki", encoding = "utf-8" },
-    { path = "/usr/local/share/skk/SKK-JISYO.edict2", encoding = "utf-8" },
-    { path = "/usr/local/share/skk/SKK-JISYO.emoji", encoding = "utf-8" },
-    { path = "/usr/local/share/skk/SKK-JISYO.emoji-ja", encoding = "utf-8" },
+    { path = "/usr/local/share/skk/SKK-JISYO.misc", encoding = "utf-8" },
+    -- { path = "/usr/local/share/skk/SKK-JISYO.jawiki", encoding = "utf-8" },
   },
 
   -- blink.cmp ネイティブソース（lua/my/cmp/blink.lua の

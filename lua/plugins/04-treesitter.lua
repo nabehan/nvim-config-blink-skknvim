@@ -101,6 +101,18 @@ return {
             pcall(vim.treesitter.start, args.buf, lang)
             -- indent: プラグイン側が experimental と明記している機能
             vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+
+            -- tex/plaintex は vim.treesitter.start() が旧来の syntax を
+            -- 自動的に OFF にしてしまうため明示的に ON に戻す。
+            -- vimtex の math text object 等は syntax グループに依存しており、
+            -- syntax を OFF のままにすると vimtex#nvim#check_treesitter() が
+            -- 警告（Syntax highlighting is controlled by Treesitter!）を出し、
+            -- 該当機能が動作しなくなる。ON に戻すことで Tree-sitter ハイライトと
+            -- vimtex 独自ハイライトを併用し、警告を解消しつつ機能を維持する。
+            -- 参照: vimtex/doc/vimtex.txt |vimtex-faq-treesitter|
+            if ft == "tex" or ft == "plaintex" then
+              vim.bo[args.buf].syntax = "ON"
+            end
           end
 
           if pcall(vim.treesitter.language.add, lang) then
