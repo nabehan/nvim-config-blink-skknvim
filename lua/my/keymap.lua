@@ -47,7 +47,7 @@ end, { desc = "ウィンドウを全画面に広げる" })
 -- jk で素早くノーマルモードに戻る
 -- vim.keymap.set("i", "jk", "<Esc>", { noremap = true, silent = true })
 
--- nvim-hlslens: 検索マッチ位置を scrollbar に反映
+-- nvim-hlslens: 検索マッチ位置の横に件数 lens を表示
 local hlslens_ok, hlslens = pcall(require, "hlslens")
 if hlslens_ok then
   local opts = { noremap = true, silent = true }

@@ -67,23 +67,24 @@ return {
     "petertriho/nvim-scrollbar",
     dependencies = {
       "lewis6991/gitsigns.nvim",
-      "kevinhwang91/nvim-hlslens",
     },
     config = function()
       local colors = require("tokyonight.colors").setup()
       require("scrollbar").setup({
-        handle = { color = colors.bg_highlight },
         marks = {
-          Search = { color = colors.orange },
-          Error = { color = colors.error },
-          Warn = { color = colors.warning },
-          Info = { color = colors.info },
-          Hint = { color = colors.hint },
-          Misc = { color = colors.purple },
+          Search = { highlight = { fg = colors.orange } },
+          Error = { highlight = { fg = colors.error } },
+          Warn = { highlight = { fg = colors.warning } },
+          Info = { highlight = { fg = colors.info } },
+          Hint = { highlight = { fg = colors.hint } },
+          Misc = { highlight = { fg = colors.purple } },
         },
-        handlers = {
+        providers = {
           gitsigns = true,
           search = true,
+        },
+        scrollbar = {
+          thumb = { highlight = { bg = colors.bg_highlight } },
         },
       })
     end,
@@ -94,19 +95,9 @@ return {
     event = { "BufReadPost", "BufNewFile" },
     -- 追加: ファイルを開いた時にロード 2026-06-20 Sat 04:39:43
     config = function()
-      -- build_position_cb で検索位置を scrollbar に渡す（公式推奨の連携方法）
-      require("hlslens").setup({
-        build_position_cb = function(plist, _, _, _)
-          require("scrollbar.handlers.search").handler.show(plist.start_pos)
-        end,
-      })
-      -- 検索コマンド終了時に scrollbar の検索マークを非表示にする
-      vim.cmd([[
-        augroup scrollbar_search_hide
-          autocmd!
-          autocmd CmdlineLeave : lua require('scrollbar.handlers.search').handler.hide()
-        augroup END
-      ]])
+      -- scrollbar v2 の search プロバイダはネイティブ検索を直接読むため、
+      -- hlslens との連携（build_position_cb 等）は不要
+      require("hlslens").setup()
     end,
   },
 
@@ -116,7 +107,6 @@ return {
     -- 追加: ファイルを開いた時にロード 2026-06-20 Sat 04:39:43
     config = function()
       require("gitsigns").setup()
-      require("scrollbar.handlers.gitsigns").setup()
     end,
   },
 
