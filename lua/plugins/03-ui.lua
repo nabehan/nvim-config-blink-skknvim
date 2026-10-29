@@ -65,6 +65,7 @@ return {
 
   {
     "petertriho/nvim-scrollbar",
+    branch = "refactor/v2", -- 2026-11-16 に v2 が main に入ったら削除
     dependencies = {
       "lewis6991/gitsigns.nvim",
     },
